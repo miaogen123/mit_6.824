@@ -2,9 +2,15 @@ package main
 
 import (
 	"fmt"
-	"mapreduce"
 	"os"
+	"strconv"
+	"strings"
+	"unicode"
+	"mapreduce"
 )
+
+//var wordCounter = make(map[string]int)
+//var tempWriteFile, err = os.OpenFile("tmp", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
 
 //
 // The map function is called once for each file of input. The first
@@ -15,6 +21,14 @@ import (
 //
 func mapF(filename string, contents string) []mapreduce.KeyValue {
 	// Your code here (Part II).
+	var kvList []mapreduce.KeyValue
+	words := strings.FieldsFunc(contents, func(r rune) bool {
+		return !unicode.IsLetter(r)
+	})
+	for  _, one := range words {
+		kvList = append(kvList, mapreduce.KeyValue{one, "1"})
+	}
+	return kvList
 }
 
 //
@@ -23,7 +37,18 @@ func mapF(filename string, contents string) []mapreduce.KeyValue {
 // any map task.
 //
 func reduceF(key string, values []string) string {
+	wc := 0
+	for _, val := range values {
+		num, err := strconv.Atoi(val)
+		if err != nil {
+			panic(err)
+		}
+		wc += num
+	}
 	// Your code here (Part II).
+	//var wordCounter map[string]int
+	countAsStr := strconv.Itoa(wc)
+	return countAsStr
 }
 
 // Can be run in 3 ways:

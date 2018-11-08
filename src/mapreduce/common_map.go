@@ -96,10 +96,9 @@ func doMap(
 	type oneKeyValList []KeyValue
 	var kvList = make([]oneKeyValList, nReduce)
 
-	for key, val := range keyValueRet {
-		ind := ihash(string(key)) % nReduce
-
-		kvList[ind] = append(kvList[ind], val)
+	for _, val := range keyValueRet {
+		fileind := ihash(string(val.Key)) % nReduce
+		kvList[fileind] = append(kvList[fileind], val)
 	}
 
 	for ind, val := range kvList {

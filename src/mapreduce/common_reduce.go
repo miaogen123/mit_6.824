@@ -2,10 +2,10 @@ package mapreduce
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"sort"
-	"strconv"
 )
 
 func doReduce(
@@ -58,38 +58,61 @@ func doReduce(
 	//NOTE::这里有个问题，sequential的时候，nMap传过来为1，reduceTask 却为0
 	//在创建文件*_map.go 时，nmap为0， reduce task却为1， 导致输入和输出的文件不一样
 	//FIX：这里是我的理解的问题，题目中nMap, 我理解 成的被写的文件，实际上应该是，有多少要写入的文件
+
+	//tmpFile, err1 := os.OpenFile("tmp", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
+	//defer tmpFile.Close()
+	//if err1 != nil {
+	//	panic(err1)
+	//}
+	var keys []string
+	//var allKeyValue map[string][]string
+	allKeyValue := make(map[string][]string)
 	for nmap := 0; nmap < nMap; nmap++ {
 		readfile := reduceName(jobName, nmap, reduceTask)
+		//tmpFile.Write([]byte(readfile + " nmap " + strconv.Itoa(nmap) + " reduceTask " + strconv.Itoa(reduceTask) + " "))
+		//tmpFile.Write([]byte(strconv.Itoa(len(allKeyValue)) + "\n"))
 		readfileHandler, err := os.OpenFile(readfile, os.O_RDONLY, 0664)
-		defer readfileHandler.Close()
-		content, _ := ioutil.ReadAll(readfileHandler)
 		if err != nil {
 			panic(err)
 		}
+		defer readfileHandler.Close()
+		content, _ := ioutil.ReadAll(readfileHandler)
 		//直接写入文件
 		//从文件中读取，花了一点功夫在GO的语法上面
 		var kvList []KeyValue
 
 		json.Unmarshal(content, &kvList)
-		sort.Slice(kvList, func(a, b int) bool {
-			i, err := strconv.ParseInt(kvList[a].Key, 10, 32)
-			j, err := strconv.ParseInt(kvList[b].Key, 10, 32)
-			if err != nil {
-				panic(err)
+		for _, keyvalue := range kvList {
+			_, ok := allKeyValue[keyvalue.Key]
+			if ok == false {
+				keys = append(keys, keyvalue.Key)
+				allKeyValue[keyvalue.Key] = []string{keyvalue.Value}
+			} else {
+				allKeyValue[keyvalue.Key] = append(allKeyValue[keyvalue.Key], keyvalue.Value)
 			}
-			return i < j
-		})
-		writeTofileHandler, err := os.OpenFile(outFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
-		defer writeTofileHandler.Close()
-		if err != nil {
-			panic(err)
-		}
-
-		encoderHandler := json.NewEncoder(writeTofileHandler)
-		for _, val := range kvList {
-			var valList []string
-			valList = append(valList, val.Value)
-			encoderHandler.Encode(KeyValue{val.Key, reduceF(val.Key, valList)})
 		}
 	}
+	sort.Strings(keys)
+
+	//dataMarshaled, _ := json.Marshal(len(kvList))
+	//tmpFile.Write(dataMarshaled)
+	//tmpFile.Write([]byte("\n"))
+	writeTofileHandler, err := os.OpenFile(outFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
+	defer writeTofileHandler.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	encoderHandler := json.NewEncoder(writeTofileHandler)
+	for _, val := range keys {
+		errOfEncode := encoderHandler.Encode(KeyValue{val, reduceF(val, allKeyValue[val])})
+		if errOfEncode != nil {
+			fmt.Println("key " + val + " insert failed")
+		}
+
+	}
+	//tmpFile.Write([]byte("keycount \n"))
+	//dataMarshaled, _ = json.Marshal(keycount)
+	//tmpFile.Write(dataMarshaled)
+	//tmpFile.Write([]byte("\n"))
 }
