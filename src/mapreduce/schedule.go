@@ -60,39 +60,74 @@ func schedule(jobName string, mapFiles []string, nReduce int, phase jobPhase, re
 	var wg sync.WaitGroup
 	wg.Add(len(workerSet))
 	//tmpFile.Write([]byte(strconv.Itoa(len(workerSet)) + " \n"))
+	//定义失败返回时的数据结构
+	type failedWork struct {
+		workerAddr string
+		taskNum    int
+	}
+	failedChan := make(chan failedWork, ntasks)
+	taskList := make([]int, ntasks)
 	for i := 0; i < ntasks; i++ {
-		//FIXME：：这里有需要优化的地方：就是这里等待goroutine结束的时候，使用的是waitGroup，没有用一种等待其中一个OK的方式，(原因：还不会)
+		taskList[i] = i
+	}
+	//NOTE::这里如果使用队列的方式实现会方便很多很多
+	//for _, taskNum := range taskList {
+	for i := 0; i < len(taskList); i++ {
+		//FIXME::每次都要去找下一个，比较浪费时间
 		for key, val := range workerState {
 			if val == false {
 				workerAddr = key
 			}
 		}
 		//tmpFile.Write([]byte(workerAddr + " \n"))
-		doTaskArgsToPass := DoTaskArgs{jobName, mapFiles[i], phase, i, n_other}
+		doTaskArgsToPass := DoTaskArgs{jobName, mapFiles[taskList[i]], phase, taskList[i], n_other}
 		go func() {
-			call(workerAddr, "Worker.DoTask", doTaskArgsToPass, nil)
+			currentTaskNum := taskList[i]
+			currentWorkerAddr := workerAddr
+			flag := call(workerAddr, "Worker.DoTask", doTaskArgsToPass, nil)
+			if !flag {
+				//failedChan <- (currentTaskNum + currentWorkerAddr)
+				failedChan <- failedWork{currentWorkerAddr, currentTaskNum}
+			}
 			wg.Done()
 		}()
+
 		runningTask++
 		workerState[workerAddr] = true
-		if runningTask == len(workerSet) {
+		if runningTask == len(workerState) {
+			//FIXME：：这里有需要优化的地方：就是这里等待goroutine结束的时候，使用的是waitGroup，没有用一种等待其中一个OK的方式，(原因：还不会)
 			wg.Wait()
+			flag := true
+			for flag {
+				select {
+				case failed, _ := <-failedChan:
+					delete(workerState, failed.workerAddr)
+					taskList = append(taskList, failed.taskNum)
+				case <-time.After(time.Millisecond * 10):
+					flag = false
+				}
+			}
 			runningTask = 0
 			for key := range workerState {
 				workerState[key] = false
 			}
-			wg.Add(len(workerSet))
+			wg.Add(len(workerState))
+			//tmpFile.Write([]byte(strconv.Itoa(len(workerState)) + " len(workerState)\n"))
 		}
+
 		//监听新来的请求
-		//FIXME::这里每次只会监听一个新加入的请求
-		select {
-		case workerAddr, _ = <-registerChan:
-			workerSet = append(workerSet, workerAddr)
-			workerState[workerAddr] = false
-			wg.Add(1)
-		case <-time.After(time.Millisecond * 200):
+		flag := true
+		for flag {
+			select {
+			case workerAddr, _ = <-registerChan:
+				//workerSet = append(workerSet, workerAddr)
+				workerState[workerAddr] = false
+				wg.Add(1)
+			case <-time.After(time.Millisecond * 20):
+				flag = false
+			}
 		}
 	}
-	//tmpFile.Write([]byte(string(phase) + "finished \n"))
+	//	tmpFile.Write([]byte(string(phase) + "finished \n"))
 	fmt.Printf("Schedule: %v done\n", phase)
 }
