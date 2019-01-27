@@ -18,9 +18,14 @@ package raft
 //
 
 import (
+	"fmt"
 	"labrpc"
 	"math/rand"
+	"runtime"
+	"strconv"
+	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -73,6 +78,27 @@ type Raft struct {
 	///use to track the state of replica
 	nextIndex  []int
 	matchIndex []int
+
+	//variables to sequencely execute the command
+	commandToBeExec chan *UnexecuteCommand
+	//taskWL          sync.Mutex // Lock to protect shared access to this peer's state    ---no need the only pos of this chan be writed
+	applyCh chan ApplyMsg
+}
+
+//UnexecuteCommand : the command need to execute
+type UnexecuteCommand struct {
+	command interface{}
+	term    int
+	index   int
+	success bool
+	//when  process finishes, it will return the index the command laied
+	processFinished chan int
+}
+
+//CommandTerm:for outer reference; the same functionality with commandTerm
+type CommandTerm struct {
+	Command interface{}
+	Term    int
 }
 
 //AppendEntry to send
@@ -81,9 +107,8 @@ type AppendEntry struct {
 	LeaderID     int
 	PrevLogIndex int
 
-	PreLogTerm int
-	Entries    []int
-
+	PreLogTerm   int
+	Entries      []CommandTerm
 	LeaderCommit int
 }
 
@@ -99,16 +124,16 @@ type AppendEntryReply struct {
 func (rf *Raft) GetState() (int, bool) {
 
 	var term int
-	var isleader bool
+	var isLeader bool
 	// Your code here (2A).
 	rf.mu.Lock()
 	term = rf.currentTerm
-	isleader = (rf.leaderNum == rf.me)
+	isLeader = (rf.leaderNum == rf.me)
 	rf.mu.Unlock()
-	if isleader {
+	if isLeader {
 		DPrintf("node %d is leader", rf.me)
 	}
-	return term, isleader
+	return term, isLeader
 }
 
 //
@@ -173,7 +198,7 @@ type RequestVoteReply struct {
 
 //global varible
 const (
-	TermLength = 1400
+	TermLength = 1000
 	HBInterval = 100
 )
 
@@ -191,8 +216,12 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 
 	reply.Term = currTerm
 	var voteFor int
-	DPrintf("node %d currTerm:%d  candidateTerm:%d args.LastLogIndex:%d len(rf.log):%d", rf.me, currTerm, candidateTerm, args.LastLogIndex, len(rf.log))
-	if rf.votedFor == -1 && currTerm < candidateTerm && args.LastLogIndex >= len(rf.log) {
+	DPrintf("node %d getRV currTerm:%d  candidateTerm:%d args.LastLogIndex:%d len(rf.log):%d", rf.me, currTerm, candidateTerm, args.LastLogIndex, len(rf.log))
+	if rf.votedFor == -1 && currTerm < candidateTerm && args.LastLogIndex >= len(rf.log)-1 {
+		if len(rf.log) > 1 && args.LastLogIndex == len(rf.log)-1 && rf.log[len(rf.log)-1].term != args.LastLogTerm {
+			reply.VoteGranted = false
+			voteFor = 0
+		}
 		rf.votedFor = candidateID
 		reply.VoteGranted = true
 		voteFor = 1
@@ -206,9 +235,12 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 //AppendEntry...
 func (rf *Raft) AppendEntry(args *AppendEntry, reply *AppendEntryReply) {
 	defer func() {
-		AENotifyChan <- true
 		if e := recover(); e != nil {
-			DPrintf("node%d write to close channel")
+			DPrintf("node %d error value is %v", rf.me, e)
+		}
+		if reply.Success {
+			AENotifyChan <- true
+			DPrintf("node %d get command %v from leader %d", rf.me, args.Entries, args.LeaderID)
 		}
 	}()
 	DPrintf("node %d get AE imply leader %d ", rf.me, args.LeaderID)
@@ -220,22 +252,93 @@ func (rf *Raft) AppendEntry(args *AppendEntry, reply *AppendEntryReply) {
 
 	//1. Reply false if term < currentTerm (§5.1)
 	reply.Me = rf.me
+	reply.Term = curTerm
+	//	DPrintf("AE:node %d currTerm:%d  candidateTerm:%d args.LastLogIndex:%d len(rf.log):%d", rf.me, curTerm, candidateTerm, args.LastLogIndex, len(rf.log))
+	DPrintf("node %d args.Term %d,  curTerm %d", rf.me, args.Term, curTerm)
 	if args.Term < curTerm {
 		reply.Success = false
+		DPrintf("node %d returned because of args.Term < curTerm", rf.me)
 		return
 	} else if args.Term > curTerm && rf.leaderNum == rf.me {
 		rf.leaderNum = args.LeaderID
+
 	}
 	rf.currentTerm = args.Term
+	//nil implies the HB packet
+	if args.Entries == nil {
+		reply.Success = true
+		DPrintf("node %d returned because of args.Entries==nil ", rf.me)
+		return
+	}
+	DPrintf("node %d pass 1 |prevlogindex %d", rf.me, args.PrevLogIndex)
 	//TODO:2. Reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm (§5.3)
-	// existFlag := false
-	// if len(rf.log) == 0 && args.PrevLogIndex == -1 {
-	// 	existFlag = true
-	// } else {
-	// 	for _, oneLog := range rf.log {
-	//
-	// 	}
-	// }
+	existFlag := true
+	if args.PrevLogIndex == 0 {
+		existFlag = true
+	} else {
+		if args.PrevLogIndex >= len(rf.log) {
+			existFlag = false
+		} else if rf.log[args.PrevLogIndex].term != args.PreLogTerm {
+			existFlag = false
+		}
+	}
+	if !existFlag {
+		reply.Success = false
+		DPrintf("node %d returned because of existFlag=false ", rf.me)
+		//DPrintf("node %d returned because of args.Entries==nil ", rf.me)
+		return
+	}
+	DPrintf("node %d pass 2", rf.me)
+	//3. If an existing entry conflicts with a new one (same index but different terms), delete the existing entry and all that follow it (§5.3)
+	//question the problem above. why not use the entries in the AppendEntry directly?
+	startInd := args.PrevLogIndex + 1
+	for _, oneLog := range args.Entries {
+		var comm commandTerm
+		comm.term = oneLog.Term
+		comm.command = oneLog.Command
+		if startInd >= len(rf.log) {
+			rf.log = append(rf.log, comm)
+			DPrintf("node %d startInd %d , len(rf.log) %d, term %d, command %d, value %v", rf.me, startInd, len(rf.log), comm.term, comm.command, rf.log[0])
+		} else {
+			if rf.log[startInd].term != oneLog.Term {
+				reply.Success = false
+				return
+			}
+			rf.log[startInd].command = oneLog.Command
+		}
+		var applyMsg ApplyMsg
+		applyMsg.Command = oneLog.Command
+		applyMsg.CommandIndex = startInd
+		applyMsg.CommandValid = true
+		rf.applyCh <- applyMsg
+		startInd++
+
+	}
+
+	DPrintf("node %d pass 3", rf.me)
+	reply.Success = true
+	if args.LeaderCommit > rf.commitIndex {
+		if args.LeaderCommit > len(rf.log)-1 {
+			rf.commitIndex = len(rf.log) - 1
+		} else {
+			rf.commitIndex = args.LeaderCommit
+		}
+	}
+	DPrintf("node %d pass 4", rf.me)
+	//TODO::optimize needed
+	close(rf.commandToBeExec)
+	rf.commandToBeExec = make(chan *UnexecuteCommand, 256)
+	DPrintf("node %d pass all ", rf.me)
+	if args.Term > curTerm {
+		rf.mu.Lock()
+		rf.currentTerm = args.Term
+		rf.mu.Unlock()
+		DPrintf("node %d update term from %d to %d", rf.me, curTerm, args.Term)
+	}
+	//for _, oneLog := range args.Entries {
+	//	rf.log = append(rf.log, commandTerm{oneLog.Command, oneLog.Term})
+	//	DPrintf("node %d,len(rf.log) %d, oneLog:comamand %d ,term %d", rf.me, len(rf.log), rf.log, oneLog.Command, oneLog.Term)
+	//}
 }
 
 //
@@ -286,7 +389,7 @@ func (rf *Raft) sendAppendEntry(server int, args *AppendEntry, reply *AppendEntr
 // agreement and return immediately. there is no guarantee that this
 // command will ever be committed to the Raft log, since the leader
 // may fail or lose an election.
-// even if the Raft instance has been killed,
+// even if the Raft instance has been killed,ppen
 // this function should return gracefully.
 //
 // the first return value is the index that the command will appear at
@@ -298,9 +401,37 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 	index := -1
 	term := -1
 	isLeader := true
-
 	// Your code here (2B).
+	DPrintf("node %d receive command value %v", rf.me, command)
+	rf.mu.Lock()
+	leaderNum := rf.leaderNum
+	curTerm := rf.currentTerm
+	rf.mu.Unlock()
+	comTE := &UnexecuteCommand{}
+	comTE.command = command
+	comTE.term = curTerm
+	if leaderNum != rf.me {
+		isLeader = false
+		return index, term, isLeader
+	}
+	DPrintf("node %d  waiting %d", rf.me, command)
+	rf.commandToBeExec <- comTE
+	comTE.processFinished = make(chan int)
+	index = <-comTE.processFinished
+	DPrintf("node %d finished waiting index %d", rf.me, index)
 	return index, term, isLeader
+}
+
+//only for debug
+func GoID() int {
+	var buf [64]byte
+	n := runtime.Stack(buf[:], false)
+	idField := strings.Fields(strings.TrimPrefix(string(buf[:n]), "goroutine "))[0]
+	id, err := strconv.Atoi(idField)
+	if err != nil {
+		panic(fmt.Sprintf("cannot get goroutine id: %v", err))
+	}
+	return id
 }
 
 //
@@ -377,9 +508,7 @@ func (rf *Raft) CandidateProcess(electionTimeOut, majority int) bool {
 		case <-func() <-chan time.Time {
 			if timer == nil {
 				timer = time.NewTimer(time.Millisecond * time.Duration(electionTimeOut))
-				DPrintf("node %d started ", rf.me)
-			} else {
-				timer.Reset(time.Millisecond * time.Duration(electionTimeOut))
+				DPrintf("node %d candidate started ", rf.me)
 			}
 			return timer.C
 		}():
@@ -401,37 +530,65 @@ func (rf *Raft) CandidateProcess(electionTimeOut, majority int) bool {
 }
 
 //there should have a chan as argument, because the command may come
-func (rf *Raft) LeaderProcess(electionTimeOut int) int {
+func (rf *Raft) LeaderProcess(electionTimeOut int, applyCh chan ApplyMsg) int {
+	defer func() {
+		if e := recover(); e != nil {
+			DPrintf("node %d leader error:%v", rf.me, e)
+		}
+	}()
 	var TermTimer *time.Timer
 	var HBTimer *time.Timer
 	//more buf than it actually needs
-	AEDistributedChan := make(chan bool, len(rf.peers))
-	AEChan := make(chan *AppendEntryReply, len(rf.peers))
+	AEDistributedChan := make(chan interface{}, len(rf.peers))
+	//TODO::this channel may need more then len(rf.peers) pos
+	AEChan := make(chan bool, 2*len(rf.peers))
 	//to first notify leader to send empty HB
-	AEDistributedChan <- true
+	AEDistributedChan <- nil
 
 	istermTimeOut := false
 	DPrintf("node %d in the leader process", rf.me)
+
+	nextInd := len(rf.log)
+	rf.nextIndex = make([]int, len(rf.peers))
+	for ind, _ := range rf.nextIndex {
+		rf.nextIndex[ind] = nextInd
+	}
+	rf.matchIndex = make([]int, len(rf.peers))
+	//slice to remember the AER of state of command
+	state := make([]int32, len(rf.peers))
+	var commandToWriteToLog *UnexecuteCommand
+	AERcount := 0
 	for !istermTimeOut {
 		select {
 		//HB timer
 		case <-func() <-chan time.Time {
 			if HBTimer == nil {
 				HBTimer = time.NewTimer(time.Millisecond * time.Duration(HBInterval))
-			} else {
-				HBTimer.Reset(time.Millisecond * time.Duration(HBInterval))
 			}
 			//here send HB parket
 			return HBTimer.C
 		}():
 			DPrintf("node %d send HB", rf.me)
-			AEDistributedChan <- true
-		case <-AEDistributedChan:
+			HBTimer.Reset(time.Millisecond * time.Duration(HBInterval))
+			AEDistributedChan <- nil
+		case commandToBeExec := <-AEDistributedChan:
 			//distributes AE(HB)
-			DPrintf("node %d distributing AE", rf.me)
+			DPrintf("node %d id:%d distributing AE", rf.me, GoID())
 			appEn := &AppendEntry{}
 			appEn.Term = rf.currentTerm
 			appEn.LeaderID = rf.me
+			var unExecute *UnexecuteCommand
+			if commandToBeExec == nil {
+				DPrintf("node %d command==nil", rf.me)
+			} else {
+				DPrintf("node %d has the command ", rf.me)
+				unExecute = commandToBeExec.(*UnexecuteCommand)
+				var commT CommandTerm
+				commT.Command = unExecute.command.(int)
+				commT.Term = unExecute.term
+				appEn.Entries = append(appEn.Entries, commT)
+			}
+			//remember the pre appendentry
 			appEn.PrevLogIndex = len(rf.log) - 1
 			if len(rf.log) != 0 {
 				appEn.PreLogTerm = rf.log[len(rf.log)-1].term
@@ -441,37 +598,116 @@ func (rf *Raft) LeaderProcess(electionTimeOut int) int {
 				if ind == rf.me {
 					continue
 				}
-				go func(ind int) {
+				state[ind]++
+				go func(ind int, commState int32) {
 					defer func() {
 						if e := recover(); e != nil {
 							DPrintf("AE send routines down %v", e)
 						}
 					}()
 					//three times try
-					for count := 0; count < 3; count++ {
+					var appEnPointer *AppendEntry
+					appEnPointer = appEn
+					prevLogIndex := appEnPointer.PrevLogIndex
+					//DPrintf("the length of appnendEntry is %d", len(appEnPointer.Entries))
+					for count := 0; ; count++ {
 						appendEntryReply := &AppendEntryReply{}
-						DPrintf("node %d try AE %d time to %d ", rf.me, count, ind)
-						if rf.sendAppendEntry(ind, appEn, appendEntryReply) == true {
-							//AEChan <- appendEntryReply
-							break
+						DPrintf("node %d try AE %d time to %d lenof(rf.peer) %d", rf.me, count, ind, len(rf.peers))
+						if rf.sendAppendEntry(ind, appEnPointer, appendEntryReply) == true {
+							if appendEntryReply.Success {
+								DPrintf("node %d get success from %d", rf.me, appendEntryReply.Me)
+								if len(appEnPointer.Entries) == 0 || appEnPointer.Entries == nil {
+									DPrintf("node %d AE return True because of the nil", appendEntryReply.Me)
+									return
+								}
+								rf.nextIndex[ind] = appEnPointer.PrevLogIndex + len(appEnPointer.Entries) + 1
+								rf.matchIndex[ind] = rf.nextIndex[ind] - 1
+								DPrintf("leader %d: node %d success apply AE prevlogindex %v at term %d", rf.me, appendEntryReply.Me, appEnPointer.PrevLogIndex, rf.currentTerm)
+								if appEnPointer.PrevLogIndex != prevLogIndex {
+									var appEnTmp AppendEntry
+									appEnTmp.LeaderCommit = appEnPointer.LeaderCommit
+									appEnTmp.LeaderID = appEnPointer.LeaderID
+									appEnTmp.PrevLogIndex = appEnPointer.PrevLogIndex + 1
+
+									appEnTmp.Term = rf.currentTerm
+									commToVerify := rf.log[appEnTmp.PrevLogIndex+1]
+									appEnTmp.Entries = append(appEnTmp.Entries, CommandTerm{commToVerify.command, commToVerify.term})
+									appEnTmp.PreLogTerm = rf.log[appEnTmp.PrevLogIndex].term
+									appEnPointer = &appEnTmp
+									DPrintf("node %d to %d AE increment to preIndex %d", rf.me, ind, appEnTmp.PrevLogIndex)
+									continue
+								}
+								DPrintf("node %d AER return true", appendEntryReply.Me)
+								if atomic.LoadInt32(&state[ind]) == commState {
+									DPrintf("node %d AER return true and notified ", appendEntryReply.Me)
+									AEChan <- true
+								}
+								return
+							} else {
+								if appendEntryReply.Term > rf.currentTerm {
+									rf.leaderNum = -1
+									AENotifyChan <- true
+									return
+								}
+								var appEnTmp AppendEntry
+								appEnTmp.LeaderCommit = appEnPointer.LeaderCommit
+								appEnTmp.LeaderID = appEnPointer.LeaderID
+								prevlog := appEnPointer.PrevLogIndex - 1
+								if prevlog < 0 {
+									DPrintf("leader node %d prevlogindex becomes <0", rf.me)
+								}
+								appEnTmp.PrevLogIndex = prevlog
+								commToVerify := rf.log[appEnTmp.PrevLogIndex+1]
+								var TmpComTerm CommandTerm
+								TmpComTerm.Term = commToVerify.term
+								DPrintf("node %d go to decrement the %d's log to prelog %d count %d command Term:%d", rf.me, appendEntryReply.Me, prevlog, count, commToVerify.term)
+								TmpComTerm.Command = commToVerify.command
+								appEnTmp.Entries = append(appEnTmp.Entries, TmpComTerm)
+								appEnTmp.Term = rf.currentTerm
+								appEnTmp.PreLogTerm = rf.log[appEnTmp.PrevLogIndex].term
+								appEnPointer = &appEnTmp
+							}
+						} else {
+							DPrintf("TIME: %d node: %d  send AE to %d failed ", count, rf.me, ind)
 						}
-						DPrintf("TIME: %d node: %d  send AE to %d failed ", count, rf.me, ind)
 					}
-				}(ind)
+				}(ind, state[ind])
 			}
+			HBTimer.Reset(time.Millisecond * time.Duration(HBInterval))
 			//leader timer
 		case <-AEChan:
-			continue
+			DPrintf("leader %d in the AEChan", rf.me)
+			AERcount++
+			if AERcount >= int((len(rf.peers)-1)/2) {
+				if commandToWriteToLog == nil {
+					continue
+				}
+				var commandToAppend commandTerm
+				commandToAppend.command = commandToWriteToLog.command
+				commandToAppend.term = commandToWriteToLog.term
+				rf.log = append(rf.log, commandToAppend)
+				commandToWriteToLog.processFinished <- len(rf.log) - 1
+				DPrintf("leader %d send index %v", rf.me, len(rf.log)-1)
+				var applyMsg ApplyMsg
+				applyMsg.Command = commandToAppend.command
+				applyMsg.CommandIndex = len(rf.log) - 1
+				applyMsg.CommandValid = true
+				applyCh <- applyMsg
+				DPrintf("leader %d command %v apply successful", rf.me, commandToAppend.command)
+				commandToWriteToLog = nil
+			}
 		case <-func() <-chan time.Time {
 			if TermTimer == nil {
 				TermTimer = time.NewTimer(time.Millisecond * time.Duration(TermLength))
-			} else {
-				TermTimer.Reset(time.Millisecond * time.Duration(TermLength))
 			}
 			return TermTimer.C
 		}():
 			DPrintf("leader %d :Term timeout...go to new term and elect", rf.me)
 			istermTimeOut = true
+			rf.mu.Lock()
+			rf.currentTerm++
+			rf.mu.Unlock()
+			TermTimer.Reset(time.Millisecond * time.Duration(TermLength))
 			break
 		//operation when receive the AE notification of other
 		case <-AENotifyChan:
@@ -479,10 +715,13 @@ func (rf *Raft) LeaderProcess(electionTimeOut int) int {
 			if rf.me != rf.leaderNum {
 				return -1
 			}
+		case commTBE := <-rf.commandToBeExec:
+			DPrintf("node %d process the task: command %v ", rf.me, commTBE.command)
+			commandToWriteToLog = commTBE
+			AEDistributedChan <- commTBE
 		}
 	}
 	return 0
-
 }
 
 func (rf *Raft) Follower(electionTimeOut int) {
@@ -493,13 +732,14 @@ func (rf *Raft) Follower(electionTimeOut int) {
 		case <-func() <-chan time.Time {
 			if TermTimer == nil {
 				TermTimer = time.NewTimer(time.Millisecond * time.Duration(electionTimeOut))
-			} else {
-				TermTimer.Reset(time.Millisecond * time.Duration(electionTimeOut))
 			}
 			return TermTimer.C
 		}():
 			isTimeOut = true
-			DPrintf("node %d :follower Term timeout... go to new term and starting to elect", rf.me)
+			DPrintf("node %d follower Term timeout... go to new term and starting to elect", rf.me)
+			rf.mu.Lock()
+			rf.currentTerm++
+			rf.mu.Unlock()
 		case <-AENotifyChan:
 			DPrintf("node %d :follower reset timer", rf.me)
 			TermTimer.Reset(time.Millisecond * time.Duration(electionTimeOut))
@@ -508,17 +748,21 @@ func (rf *Raft) Follower(electionTimeOut int) {
 }
 
 //seed use to  generate the random election timeout
-func mainProcess(rf *Raft, electionTimeOut int) {
+func mainProcess(rf *Raft, electionTimeOut int, applyCh chan ApplyMsg) {
 	//initially compete for leadership
 	//ok := false
 	defer func() {
 		if e := recover(); e != nil {
-			DPrintf("main down")
+			DPrintf("main down %v", e)
 		}
 	}()
+	rf.applyCh = applyCh
+	rf.log = append(rf.log, commandTerm{0, 0})
 	AENotifyChan = make(chan bool, len(rf.peers))
 	peersNum := len(rf.peers)
-	majority := int((peersNum - 1) / 2)
+	majority := int(float32(peersNum-1)/2 + 0.5)
+	//most 256 command in the queue
+	rf.commandToBeExec = make(chan *UnexecuteCommand, 256)
 	for {
 		//waiting for term end
 		//if get AE &&rf is not leader
@@ -529,7 +773,7 @@ func mainProcess(rf *Raft, electionTimeOut int) {
 
 		if rf.me == rf.leaderNum {
 			DPrintf("node %d go to leader", rf.me)
-			leaderStatus := rf.LeaderProcess(electionTimeOut)
+			leaderStatus := rf.LeaderProcess(electionTimeOut, applyCh)
 			DPrintf("node %d after leader:status %d", rf.me, leaderStatus)
 			//if receive AE with higher term turn to follower
 			if leaderStatus == -1 {
@@ -575,6 +819,6 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	elecTimeOut := rand.Int()
 	elecTimeOut = (elecTimeOut&255 + 256)
 	DPrintf("node %d elecTimeOut :%d ", rf.me, elecTimeOut)
-	go mainProcess(rf, elecTimeOut)
+	go mainProcess(rf, elecTimeOut, applyCh)
 	return rf
 }
