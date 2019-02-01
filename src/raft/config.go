@@ -367,6 +367,7 @@ func (cfg *config) nCommitted(index int) (int, interface{}) {
 		cfg.mu.Lock()
 		cmd1, ok := cfg.logs[i][index]
 		cfg.mu.Unlock()
+		DPrintf("TEST: node %d index %d cmd1 %d ok %v", i, index, cmd1, ok)
 
 		if ok {
 			if count > 0 && cmd != cmd1 {
@@ -452,6 +453,7 @@ func (cfg *config) one(cmd int, expectedServers int, retry bool) int {
 			t1 := time.Now()
 			for time.Since(t1).Seconds() < 2 {
 				nd, cmd1 := cfg.nCommitted(index)
+				DPrintf("get nd %d, cmd1 %v", nd, cmd1)
 				if nd > 0 && nd >= expectedServers {
 					// committed
 					if cmd2, ok := cmd1.(int); ok && cmd2 == cmd {
