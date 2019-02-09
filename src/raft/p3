@@ -1,0 +1,776 @@
+09:55:16.180780 sizeof peers=5
+09:55:16.180903 0: start...
+09:55:16.180919 node 0 elecTimeOut :408 
+09:55:16.181038 sizeof peers=5
+09:55:16.181045 1: start...
+09:55:16.181058 node 1 elecTimeOut :347 
+09:55:16.181097 sizeof peers=5
+09:55:16.181102 2: start...
+09:55:16.181115 node 2 elecTimeOut :465 
+09:55:16.181148 sizeof peers=5
+09:55:16.181152 3: start...
+09:55:16.181163 node 3 elecTimeOut :447 
+09:55:16.181200 sizeof peers=5
+09:55:16.181203 4: start...
+09:55:16.181215 node 4 elecTimeOut :420 
+Test (2B): basic agreement ...
+09:55:16.181233 TEST: node 0 index 1 cmd1 0 ok false
+09:55:16.181236 TEST: node 1 index 1 cmd1 0 ok false
+09:55:16.181239 TEST: node 2 index 1 cmd1 0 ok false
+09:55:16.181242 TEST: node 3 index 1 cmd1 0 ok false
+09:55:16.181245 TEST: node 4 index 1 cmd1 0 ok false
+09:55:16.181282 node 1 receive command value 100
+09:55:16.181289 node 2 receive command value 100
+09:55:16.181291 node 3 receive command value 100
+09:55:16.181294 node 4 receive command value 100
+09:55:16.181297 node 0 receive command value 100
+09:55:16.181364 candidate 0 TERM: 0 len of rf.log 1 
+09:55:16.181479 candidate 0 started 
+09:55:16.181621 candidate 3 TERM: 0 len of rf.log 1 
+09:55:16.181652 candidate 3 started 
+09:55:16.181665 candidate 3 try RV 0 time to 4 
+09:55:16.181675 candidate 2 TERM: 0 len of rf.log 1 
+09:55:16.181701 candidate 2 started 
+09:55:16.181758 candidate 1 TERM: 0 len of rf.log 1 
+09:55:16.181795 candidate 4 TERM: 0 len of rf.log 1 
+09:55:16.181809 candidate 0 try RV 0 time to 1 
+09:55:16.181826 candidate 1 started 
+09:55:16.181840 candidate 4 started 
+09:55:16.181850 candidate 4 try RV 0 time to 3 
+09:55:16.181759 candidate 2 try RV 0 time to 0 
+09:55:16.182270 loglen 0
+09:55:16.182282 node 4 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.182286 node 4 get RV from 3 voting false in the test2
+09:55:16.182306 loglen 0
+09:55:16.182321 node 1 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.182345 node 1 get RV from 0 voting false in the test2
+09:55:16.182308 loglen 0
+09:55:16.182366 candidate 1 try RV 0 time to 4 
+09:55:16.182463 candidate 3 try RV 0 time to 1 
+09:55:16.182516 loglen 0
+09:55:16.182525 node 4 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.182528 node 4 get RV from 1 voting false in the test2
+09:55:16.182534 loglen 0
+09:55:16.182564 node 1 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.182570 node 1 get RV from 3 voting false in the test2
+09:55:16.182606 candidate 3 try RV 0 time to 2 
+09:55:16.181761 candidate 2 try RV 0 time to 1 
+09:55:16.182694 loglen 0
+09:55:16.182698 node 1 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.182701 node 1 get RV from 2 voting false in the test2
+09:55:16.182743 loglen 0
+09:55:16.182750 node 2 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.182815 node 2 get RV from 3 voting false in the test2
+09:55:16.182368 node 3 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.182853 node 3 get RV from 4 voting false in the test2
+09:55:16.181765 candidate 3 try RV 0 time to 0 
+09:55:16.182310 candidate 4 try RV 0 time to 0 
+09:55:16.182311 candidate 4 try RV 0 time to 1 
+09:55:16.182311 candidate 4 try RV 0 time to 2 
+09:55:16.183230 loglen 0
+09:55:16.183238 node 1 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.183242 node 1 get RV from 4 voting false in the test2
+09:55:16.183247 loglen 0
+09:55:16.183253 node 2 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.183257 node 2 get RV from 4 voting false in the test2
+09:55:16.182361 loglen 0
+09:55:16.183378 node 0 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.182364 candidate 1 try RV 0 time to 0 
+09:55:16.182364 candidate 1 try RV 0 time to 2 
+09:55:16.182365 candidate 1 try RV 0 time to 3 
+09:55:16.181762 candidate 2 try RV 0 time to 3 
+09:55:16.182370 candidate 0 try RV 0 time to 2 
+09:55:16.182371 candidate 0 try RV 0 time to 3 
+09:55:16.182372 candidate 0 try RV 0 time to 4 
+09:55:16.181763 candidate 2 try RV 0 time to 4 
+09:55:16.183384 loglen 0
+09:55:16.183391 node 0 get RV from 2 voting false in the test2
+09:55:16.183796 loglen 0
+09:55:16.184626 node 2 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.184635 node 2 get RV from 1 voting false in the test2
+09:55:16.183921 loglen 0
+09:55:16.184667 node 3 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.184670 node 3 get RV from 1 voting false in the test2
+09:55:16.184353 loglen 0
+09:55:16.184692 node 4 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.184697 node 4 get RV from 0 voting false in the test2
+09:55:16.184711 loglen 0
+09:55:16.184716 node 2 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.184719 node 2 get RV from 0 voting false in the test2
+09:55:16.184762 loglen 0
+09:55:16.184771 node 3 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.184774 node 3 get RV from 2 voting false in the test2
+09:55:16.184452 node 0 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.184826 node 0 get RV from 3 voting false in the test2
+09:55:16.184838 loglen 0
+09:55:16.184846 node 4 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.184849 node 4 get RV from 2 voting false in the test2
+09:55:16.184895 loglen 0
+09:55:16.184904 node 3 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.184906 node 3 get RV from 0 voting false in the test2
+09:55:16.184453 loglen 0
+09:55:16.184933 node 0 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.184935 node 0 get RV from 4 voting false in the test2
+09:55:16.184965 loglen 0
+09:55:16.184970 node 0 getRV currTerm:0  candidateTerm:0 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.184972 node 0 get RV from 1 voting false in the test2
+09:55:16.231788 node 1 receive command value 100
+09:55:16.231833 node 2 receive command value 100
+09:55:16.231836 node 3 receive command value 100
+09:55:16.231839 node 4 receive command value 100
+09:55:16.231841 node 0 receive command value 100
+09:55:16.283039 node 1 receive command value 100
+09:55:16.283072 node 2 receive command value 100
+09:55:16.283077 node 3 receive command value 100
+09:55:16.283079 node 4 receive command value 100
+09:55:16.283082 node 0 receive command value 100
+09:55:16.334518 node 1 receive command value 100
+09:55:16.334613 node 2 receive command value 100
+09:55:16.334636 node 3 receive command value 100
+09:55:16.334640 node 4 receive command value 100
+09:55:16.334651 node 0 receive command value 100
+09:55:16.386068 node 1 receive command value 100
+09:55:16.386099 node 2 receive command value 100
+09:55:16.386103 node 3 receive command value 100
+09:55:16.386106 node 4 receive command value 100
+09:55:16.386109 node 0 receive command value 100
+09:55:16.437178 node 1 receive command value 100
+09:55:16.437208 node 2 receive command value 100
+09:55:16.437214 node 3 receive command value 100
+09:55:16.437218 node 4 receive command value 100
+09:55:16.437222 node 0 receive command value 100
+09:55:16.488648 node 1 receive command value 100
+09:55:16.488674 node 2 receive command value 100
+09:55:16.488678 node 3 receive command value 100
+09:55:16.488681 node 4 receive command value 100
+09:55:16.488683 node 0 receive command value 100
+09:55:16.529681 candidate 1 time out
+09:55:16.529727 candidate 1 TERM: 1 len of rf.log 1 
+09:55:16.529753 candidate 1 started 
+09:55:16.529759 candidate 1 try RV 0 time to 4 
+09:55:16.529777 candidate 1 try RV 0 time to 2 
+09:55:16.529864 candidate 1 try RV 0 time to 0 
+09:55:16.529897 loglen 0
+09:55:16.529907 node 4 getRV currTerm:0  candidateTerm:1 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.529912 node 4 get RV from 1 voting true
+09:55:16.529945 loglen 0
+09:55:16.529954 node 2 getRV currTerm:0  candidateTerm:1 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.529958 node 2 get RV from 1 voting true
+09:55:16.530035 loglen 0
+09:55:16.530046 node 0 getRV currTerm:0  candidateTerm:1 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.530050 node 0 get RV from 1 voting true
+09:55:16.530063 candidate 4 in the AENotifyChan
+09:55:16.530074 candidate 4 AENotifyChan has -4 eles
+09:55:16.530077 candidate 4 AENotifyChan has 0 eles
+09:55:16.530080 node 4 go to follower
+09:55:16.530064 candidate 1 being leader
+09:55:16.530086 node 1 go to leader
+09:55:16.530089 leader 1 in the leader process
+09:55:16.530096 leader 1 distributing AE
+09:55:16.530099 leader 1 command==nil
+09:55:16.530102 node 1 before the AE send goroutine 0
+09:55:16.530105 node 1 before the AE send goroutine 2
+09:55:16.530108 node 1 before the AE send goroutine 3
+09:55:16.530110 node 1 before the AE send goroutine 4
+09:55:16.530117 leader 1 try AE 0 time to 4 
+09:55:16.530120 leader 1 try AE 0 time to 0 
+09:55:16.530066 candidate 2 in the AENotifyChan
+09:55:16.530130 candidate 2 AENotifyChan has -4 eles
+09:55:16.530132 candidate 2 AENotifyChan has 0 eles
+09:55:16.530135 node 2 go to follower
+09:55:16.529923 candidate 1 try RV 0 time to 3 
+09:55:16.530301 loglen 0
+09:55:16.530310 node 3 getRV currTerm:0  candidateTerm:1 args.LastLogIndex:0 len(rf.log):1 argsLastTerm 0 localLastTerm 0
+09:55:16.530313 node 3 get RV from 1 voting true
+09:55:16.530417 leader 1 try AE 0 time to 3 
+09:55:16.530070 candidate 0 in the AENotifyChan
+09:55:16.530444 leader 1 try AE 0 time to 2 
+09:55:16.530477 node 4 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.530490 node 4 pass 1 |prevlogindex 0
+09:55:16.530495 node 4 pass 2| mycommit 0 leadercommit 0 |prevLogindex 0
+09:55:16.530499 node 4 pass 5
+09:55:16.530503 node 4 returned because of args.Entries==nil 
+09:55:16.530508 node 4 get command [] from leader 1
+09:55:16.530446 candidate 0 AENotifyChan has -4 eles
+09:55:16.530574 candidate 0 AENotifyChan has 0 eles
+09:55:16.530579 node 0 go to follower
+09:55:16.530448 candidate 3 in the AENotifyChan
+09:55:16.530590 candidate 3 AENotifyChan has -4 eles
+09:55:16.530595 candidate 3 AENotifyChan has 0 eles
+09:55:16.530599 node 3 go to follower
+09:55:16.530606 follower 4 AENotifyChan has -4 eles
+09:55:16.530632 follower 4 AENotifyChan has 0 eles
+09:55:16.530638 node 2 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.530668 node 2 pass 1 |prevlogindex 0
+09:55:16.530672 node 2 pass 2| mycommit 0 leadercommit 0 |prevLogindex 0
+09:55:16.530675 node 2 pass 5
+09:55:16.530678 node 2 returned because of args.Entries==nil 
+09:55:16.530682 node 2 get command [] from leader 1
+09:55:16.530707 node 0 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.530717 node 0 pass 1 |prevlogindex 0
+09:55:16.530721 node 0 pass 2| mycommit 0 leadercommit 0 |prevLogindex 0
+09:55:16.530723 node 0 pass 5
+09:55:16.530726 node 0 returned because of args.Entries==nil 
+09:55:16.530729 node 0 get command [] from leader 1
+09:55:16.530737 node 4 react to the HB successfully
+09:55:16.530743 node 2 react to the HB successfully
+09:55:16.530639 node 4 :follower reset timer
+09:55:16.530745 follower 2 AENotifyChan has -4 eles
+09:55:16.530758 follower 2 AENotifyChan has 0 eles
+09:55:16.530761 node 2 :follower reset timer
+09:55:16.530765 follower 0 AENotifyChan has -4 eles
+09:55:16.530768 follower 0 AENotifyChan has 0 eles
+09:55:16.530770 node 0 :follower reset timer
+09:55:16.530845 node 0 react to the HB successfully
+09:55:16.530865 node 3 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.530874 node 3 pass 1 |prevlogindex 0
+09:55:16.530882 node 3 pass 2| mycommit 0 leadercommit 0 |prevLogindex 0
+09:55:16.530885 node 3 pass 5
+09:55:16.530888 node 3 returned because of args.Entries==nil 
+09:55:16.530891 node 3 get command [] from leader 1
+09:55:16.530944 node 3 react to the HB successfully
+09:55:16.530950 follower 3 AENotifyChan has -4 eles
+09:55:16.530953 follower 3 AENotifyChan has 0 eles
+09:55:16.530955 node 3 :follower reset timer
+09:55:16.539741 node 1 receive command value 100
+09:55:16.539779 node 1  waiting 100
+09:55:16.539787 node 1 finished waiting index 1
+09:55:16.539793 TEST: node 0 index 1 cmd1 0 ok false
+09:55:16.539796 TEST: node 1 index 1 cmd1 0 ok false
+09:55:16.539800 TEST: node 2 index 1 cmd1 0 ok false
+09:55:16.539803 TEST: node 3 index 1 cmd1 0 ok false
+09:55:16.539806 TEST: node 4 index 1 cmd1 0 ok false
+09:55:16.539810 get nd 0, cmd1 -1
+09:55:16.539830 leader 1 distributing AE
+09:55:16.539870 leader 1 has the command [{100 1}]
+09:55:16.539876 node 1 before the AE send goroutine 0
+09:55:16.539881 node 1 before the AE send goroutine 2
+09:55:16.539885 node 1 before the AE send goroutine 3
+09:55:16.539890 node 1 before the AE send goroutine 4
+09:55:16.539899 leader 1 try AE 0 time to 4 
+09:55:16.539929 leader 1 try AE 0 time to 0 
+09:55:16.540011 leader 1 try AE 0 time to 2 
+09:55:16.540110 leader 1 try AE 0 time to 3 
+09:55:16.540153 node 4 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.540378 node 4 pass 1 |prevlogindex 0
+09:55:16.540389 node 4 pass 2| mycommit 0 leadercommit 0 |prevLogindex 0
+09:55:16.540396 node 4 pass 5
+09:55:16.540402 node 4 startInd 1 , len(rf.log) 2, term 1, command 100
+09:55:16.540407 node 4 pass all
+09:55:16.540423 node 4 get command [{100 1}] from leader 1
+09:55:16.540550 node 3 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.540568 node 3 pass 1 |prevlogindex 0
+09:55:16.540574 node 3 pass 2| mycommit 0 leadercommit 0 |prevLogindex 0
+09:55:16.540579 node 3 pass 5
+09:55:16.540585 node 3 startInd 1 , len(rf.log) 2, term 1, command 100
+09:55:16.540590 node 3 pass all
+09:55:16.540603 node 3 get command [{100 1}] from leader 1
+09:55:16.540661 leader 1: node 4 success get one command [{100 1}] AE prevlogindex 0 at term 1
+09:55:16.540676 leader 1: node 4 PrevLogIndex 0, loglen-1 1
+09:55:16.540683 leader 1 :node 4 AER return true | commState 1 |majority 2
+09:55:16.540724 leader 1 AE send to 4 end
+09:55:16.540554 node 2 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.540744 node 2 pass 1 |prevlogindex 0
+09:55:16.540750 node 2 pass 2| mycommit 0 leadercommit 0 |prevLogindex 0
+09:55:16.540756 node 2 pass 5
+09:55:16.540762 node 2 startInd 1 , len(rf.log) 2, term 1, command 100
+09:55:16.540768 node 2 pass all
+09:55:16.540769 follower 3 AENotifyChan has -4 eles
+09:55:16.540789 follower 3 AENotifyChan has 0 eles
+09:55:16.540793 node 3 :follower reset timer
+09:55:16.540764 leader 1: node 3 success get one command [{100 1}] AE prevlogindex 0 at term 1
+09:55:16.540805 leader 1: node 3 PrevLogIndex 0, loglen-1 1
+09:55:16.540811 leader 1 :node 3 AER return true | commState 1 |majority 2
+09:55:16.540816 leader 1  commindex 1 value 100 get majority 3 upper node
+09:55:16.540822 leader 1 start currComInd 1 rf.commitIndex 0
+09:55:16.540827 leader 1:  commit com at 1 of term 1 command 100
+09:55:16.540831 leader 1 AE send to 3 end
+09:55:16.540561 follower 4 AENotifyChan has -4 eles
+09:55:16.540841 follower 4 AENotifyChan has 0 eles
+09:55:16.540844 node 4 :follower reset timer
+09:55:16.540776 node 2 get command [{100 1}] from leader 1
+09:55:16.540934 leader 1: node 2 success get one command [{100 1}] AE prevlogindex 0 at term 1
+09:55:16.540943 leader 1: node 2 PrevLogIndex 0, loglen-1 1
+09:55:16.540947 leader 1 :node 2 AER return true | commState 1 |majority 2
+09:55:16.540950 leader 1 AE send to 2 end
+09:55:16.540358 node 0 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.540959 node 0 pass 1 |prevlogindex 0
+09:55:16.540963 node 0 pass 2| mycommit 0 leadercommit 0 |prevLogindex 0
+09:55:16.540966 node 0 pass 5
+09:55:16.540970 node 0 startInd 1 , len(rf.log) 2, term 1, command 100
+09:55:16.540982 node 0 pass all
+09:55:16.540987 node 0 get command [{100 1}] from leader 1
+09:55:16.541060 leader 1: node 0 success get one command [{100 1}] AE prevlogindex 0 at term 1
+09:55:16.541066 leader 1: node 0 PrevLogIndex 0, loglen-1 1
+09:55:16.541070 leader 1 :node 0 AER return true | commState 1 |majority 2
+09:55:16.541073 leader 1 AE send to 0 end
+09:55:16.540780 follower 2 AENotifyChan has -4 eles
+09:55:16.541080 follower 2 AENotifyChan has 0 eles
+09:55:16.541083 node 2 :follower reset timer
+09:55:16.541088 follower 0 AENotifyChan has -4 eles
+09:55:16.541091 follower 0 AENotifyChan has 0 eles
+09:55:16.541094 node 0 :follower reset timer
+09:55:16.560382 TEST: node 0 index 1 cmd1 0 ok false
+09:55:16.560436 TEST: node 1 index 1 cmd1 100 ok true
+09:55:16.560441 TEST: node 2 index 1 cmd1 0 ok false
+09:55:16.560465 TEST: node 3 index 1 cmd1 0 ok false
+09:55:16.560468 TEST: node 4 index 1 cmd1 0 ok false
+09:55:16.560470 get nd 1, cmd1 100
+09:55:16.581550 TEST: node 0 index 1 cmd1 0 ok false
+09:55:16.581593 TEST: node 1 index 1 cmd1 100 ok true
+09:55:16.581599 TEST: node 2 index 1 cmd1 0 ok false
+09:55:16.581602 TEST: node 3 index 1 cmd1 0 ok false
+09:55:16.581605 TEST: node 4 index 1 cmd1 0 ok false
+09:55:16.581608 get nd 1, cmd1 100
+09:55:16.602390 TEST: node 0 index 1 cmd1 0 ok false
+09:55:16.602428 TEST: node 1 index 1 cmd1 100 ok true
+09:55:16.602433 TEST: node 2 index 1 cmd1 0 ok false
+09:55:16.602436 TEST: node 3 index 1 cmd1 0 ok false
+09:55:16.602438 TEST: node 4 index 1 cmd1 0 ok false
+09:55:16.602441 get nd 1, cmd1 100
+09:55:16.622838 TEST: node 0 index 1 cmd1 0 ok false
+09:55:16.622892 TEST: node 1 index 1 cmd1 100 ok true
+09:55:16.622914 TEST: node 2 index 1 cmd1 0 ok false
+09:55:16.622917 TEST: node 3 index 1 cmd1 0 ok false
+09:55:16.622919 TEST: node 4 index 1 cmd1 0 ok false
+09:55:16.622939 get nd 1, cmd1 100
+09:55:16.640121 leader 1 send HB
+09:55:16.640192 leader 1 distributing AE
+09:55:16.640198 leader 1 command==nil
+09:55:16.640202 node 1 before the AE send goroutine 0
+09:55:16.640222 node 1 before the AE send goroutine 2
+09:55:16.640229 node 1 before the AE send goroutine 3
+09:55:16.640232 node 1 before the AE send goroutine 4
+09:55:16.640258 leader 1 try AE 0 time to 4 
+09:55:16.640301 leader 1 try AE 0 time to 2 
+09:55:16.640360 leader 1 try AE 0 time to 0 
+09:55:16.640409 node 4 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.640415 node 4 pass 1 |prevlogindex 1
+09:55:16.640418 node 4 pass 2| mycommit 0 leadercommit 1 |prevLogindex 1
+09:55:16.640420 leader 1 try AE 0 time to 3 
+09:55:16.640495 node 2 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.640508 node 2 pass 1 |prevlogindex 1
+09:55:16.640512 node 2 pass 2| mycommit 0 leadercommit 1 |prevLogindex 1
+09:55:16.640514 node 2 pass 5
+09:55:16.640517 node 2:  commit com at 1 command 100
+09:55:16.640520 node 2 returned because of args.Entries==nil 
+09:55:16.640523 node 2 get command [] from leader 1
+09:55:16.640539 node 0 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.640550 node 0 pass 1 |prevlogindex 1
+09:55:16.640554 node 0 pass 2| mycommit 0 leadercommit 1 |prevLogindex 1
+09:55:16.640556 node 0 pass 5
+09:55:16.640559 node 0:  commit com at 1 command 100
+09:55:16.640562 node 0 returned because of args.Entries==nil 
+09:55:16.640566 node 0 get command [] from leader 1
+09:55:16.640588 node 3 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.640599 node 3 pass 1 |prevlogindex 1
+09:55:16.640621 node 3 pass 2| mycommit 0 leadercommit 1 |prevLogindex 1
+09:55:16.640627 node 3 pass 5
+09:55:16.640631 follower 2 AENotifyChan has -4 eles
+09:55:16.640639 follower 2 AENotifyChan has 0 eles
+09:55:16.640642 node 2 :follower reset timer
+09:55:16.640420 node 4 pass 5
+09:55:16.640649 node 4:  commit com at 1 command 100
+09:55:16.640652 node 4 returned because of args.Entries==nil 
+09:55:16.640672 node 4 get command [] from leader 1
+09:55:16.640707 node 0 react to the HB successfully
+09:55:16.640717 follower 0 AENotifyChan has -4 eles
+09:55:16.640719 follower 0 AENotifyChan has 0 eles
+09:55:16.640723 node 0 :follower reset timer
+09:55:16.640631 node 3:  commit com at 1 command 100
+09:55:16.640738 node 4 react to the HB successfully
+09:55:16.640628 node 2 react to the HB successfully
+09:55:16.640739 node 3 returned because of args.Entries==nil 
+09:55:16.640750 node 3 get command [] from leader 1
+09:55:16.640889 node 3 react to the HB successfully
+09:55:16.640422 follower 4 AENotifyChan has -4 eles
+09:55:16.640900 follower 4 AENotifyChan has 0 eles
+09:55:16.640903 node 4 :follower reset timer
+09:55:16.640633 follower 3 AENotifyChan has -4 eles
+09:55:16.640909 follower 3 AENotifyChan has 0 eles
+09:55:16.640928 node 3 :follower reset timer
+09:55:16.643813 TEST: node 0 index 1 cmd1 100 ok true
+09:55:16.643854 TEST: node 1 index 1 cmd1 100 ok true
+09:55:16.643860 TEST: node 2 index 1 cmd1 100 ok true
+09:55:16.643862 TEST: node 3 index 1 cmd1 100 ok true
+09:55:16.643865 TEST: node 4 index 1 cmd1 100 ok true
+09:55:16.643867 get nd 5, cmd1 100
+09:55:16.643870 TEST: node 0 index 2 cmd1 0 ok false
+09:55:16.643873 TEST: node 1 index 2 cmd1 0 ok false
+09:55:16.643875 TEST: node 2 index 2 cmd1 0 ok false
+09:55:16.643877 TEST: node 3 index 2 cmd1 0 ok false
+09:55:16.643880 TEST: node 4 index 2 cmd1 0 ok false
+09:55:16.643900 node 1 receive command value 200
+09:55:16.643903 node 1  waiting 200
+09:55:16.643924 node 1 finished waiting index 2
+09:55:16.643930 TEST: node 0 index 2 cmd1 0 ok false
+09:55:16.643933 TEST: node 1 index 2 cmd1 0 ok false
+09:55:16.643935 TEST: node 2 index 2 cmd1 0 ok false
+09:55:16.643943 TEST: node 3 index 2 cmd1 0 ok false
+09:55:16.643946 TEST: node 4 index 2 cmd1 0 ok false
+09:55:16.643949 get nd 0, cmd1 -1
+09:55:16.643954 leader 1 distributing AE
+09:55:16.643960 leader 1 has the command [{200 1}]
+09:55:16.643964 node 1 before the AE send goroutine 0
+09:55:16.643968 node 1 before the AE send goroutine 2
+09:55:16.643970 node 1 before the AE send goroutine 3
+09:55:16.643973 node 1 before the AE send goroutine 4
+09:55:16.643984 leader 1 try AE 0 time to 4 
+09:55:16.644020 leader 1 try AE 0 time to 2 
+09:55:16.644090 leader 1 try AE 0 time to 3 
+09:55:16.644127 node 4 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.644150 node 2 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.644157 node 2 pass 1 |prevlogindex 1
+09:55:16.644160 node 2 pass 2| mycommit 1 leadercommit 1 |prevLogindex 1
+09:55:16.644162 node 2 pass 5
+09:55:16.644166 node 2 startInd 2 , len(rf.log) 3, term 1, command 200
+09:55:16.644168 node 2 pass all
+09:55:16.644173 node 2 get command [{200 1}] from leader 1
+09:55:16.644176 node 4 pass 1 |prevlogindex 1
+09:55:16.644183 node 4 pass 2| mycommit 1 leadercommit 1 |prevLogindex 1
+09:55:16.644186 node 4 pass 5
+09:55:16.644189 node 4 startInd 2 , len(rf.log) 3, term 1, command 200
+09:55:16.644192 node 4 pass all
+09:55:16.644196 node 4 get command [{200 1}] from leader 1
+09:55:16.644261 node 3 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.644290 node 3 pass 1 |prevlogindex 1
+09:55:16.644295 follower 4 AENotifyChan has -4 eles
+09:55:16.644303 follower 4 AENotifyChan has 0 eles
+09:55:16.644306 node 4 :follower reset timer
+09:55:16.644307 leader 1: node 2 success get one command [{200 1}] AE prevlogindex 1 at term 1
+09:55:16.644317 leader 1: node 2 PrevLogIndex 1, loglen-1 2
+09:55:16.644320 leader 1 :node 2 AER return true | commState 2 |majority 2
+09:55:16.644324 leader 1 AE send to 2 end
+09:55:16.644293 leader 1: node 4 success get one command [{200 1}] AE prevlogindex 1 at term 1
+09:55:16.644330 leader 1: node 4 PrevLogIndex 1, loglen-1 2
+09:55:16.644333 leader 1 :node 4 AER return true | commState 2 |majority 2
+09:55:16.644336 leader 1  commindex 2 value 200 get majority 3 upper node
+09:55:16.644338 leader 1 start currComInd 2 rf.commitIndex 1
+09:55:16.644342 leader 1:  commit com at 2 of term 1 command 200
+09:55:16.644344 leader 1 AE send to 4 end
+09:55:16.644296 node 3 pass 2| mycommit 1 leadercommit 1 |prevLogindex 1
+09:55:16.644352 node 3 pass 5
+09:55:16.644356 node 3 startInd 2 , len(rf.log) 3, term 1, command 200
+09:55:16.644359 node 3 pass all
+09:55:16.644362 node 3 get command [{200 1}] from leader 1
+09:55:16.644440 leader 1: node 3 success get one command [{200 1}] AE prevlogindex 1 at term 1
+09:55:16.644447 leader 1: node 3 PrevLogIndex 1, loglen-1 2
+09:55:16.644449 leader 1 :node 3 AER return true | commState 2 |majority 2
+09:55:16.644451 leader 1 AE send to 3 end
+09:55:16.644127 leader 1 try AE 0 time to 0 
+09:55:16.644539 node 0 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.644546 node 0 pass 1 |prevlogindex 1
+09:55:16.644549 node 0 pass 2| mycommit 1 leadercommit 1 |prevLogindex 1
+09:55:16.644551 node 0 pass 5
+09:55:16.644554 node 0 startInd 2 , len(rf.log) 3, term 1, command 200
+09:55:16.644556 node 0 pass all
+09:55:16.644559 node 0 get command [{200 1}] from leader 1
+09:55:16.644612 leader 1: node 0 success get one command [{200 1}] AE prevlogindex 1 at term 1
+09:55:16.644616 leader 1: node 0 PrevLogIndex 1, loglen-1 2
+09:55:16.644619 leader 1 :node 0 AER return true | commState 2 |majority 2
+09:55:16.644621 leader 1 AE send to 0 end
+09:55:16.644298 follower 3 AENotifyChan has -4 eles
+09:55:16.644626 follower 3 AENotifyChan has 0 eles
+09:55:16.644629 node 3 :follower reset timer
+09:55:16.644301 follower 2 AENotifyChan has -4 eles
+09:55:16.644634 follower 2 AENotifyChan has 0 eles
+09:55:16.644636 node 2 :follower reset timer
+09:55:16.644639 follower 0 AENotifyChan has -4 eles
+09:55:16.644642 follower 0 AENotifyChan has 0 eles
+09:55:16.644644 node 0 :follower reset timer
+09:55:16.664312 TEST: node 0 index 2 cmd1 0 ok false
+09:55:16.664369 TEST: node 1 index 2 cmd1 200 ok true
+09:55:16.664375 TEST: node 2 index 2 cmd1 0 ok false
+09:55:16.664378 TEST: node 3 index 2 cmd1 0 ok false
+09:55:16.664380 TEST: node 4 index 2 cmd1 0 ok false
+09:55:16.664383 get nd 1, cmd1 200
+09:55:16.685032 TEST: node 0 index 2 cmd1 0 ok false
+09:55:16.685070 TEST: node 1 index 2 cmd1 200 ok true
+09:55:16.685075 TEST: node 2 index 2 cmd1 0 ok false
+09:55:16.685087 TEST: node 3 index 2 cmd1 0 ok false
+09:55:16.685091 TEST: node 4 index 2 cmd1 0 ok false
+09:55:16.685093 get nd 1, cmd1 200
+09:55:16.705407 TEST: node 0 index 2 cmd1 0 ok false
+09:55:16.705470 TEST: node 1 index 2 cmd1 200 ok true
+09:55:16.705491 TEST: node 2 index 2 cmd1 0 ok false
+09:55:16.705494 TEST: node 3 index 2 cmd1 0 ok false
+09:55:16.705496 TEST: node 4 index 2 cmd1 0 ok false
+09:55:16.705499 get nd 1, cmd1 200
+09:55:16.726471 TEST: node 0 index 2 cmd1 0 ok false
+09:55:16.726511 TEST: node 1 index 2 cmd1 200 ok true
+09:55:16.726533 TEST: node 2 index 2 cmd1 0 ok false
+09:55:16.726536 TEST: node 3 index 2 cmd1 0 ok false
+09:55:16.726561 TEST: node 4 index 2 cmd1 0 ok false
+09:55:16.726564 get nd 1, cmd1 200
+09:55:16.744266 leader 1 send HB
+09:55:16.744334 leader 1 distributing AE
+09:55:16.744344 leader 1 command==nil
+09:55:16.744350 node 1 before the AE send goroutine 0
+09:55:16.744357 node 1 before the AE send goroutine 2
+09:55:16.744362 node 1 before the AE send goroutine 3
+09:55:16.744366 node 1 before the AE send goroutine 4
+09:55:16.744379 leader 1 try AE 0 time to 4 
+09:55:16.744549 node 4 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.744576 node 4 pass 1 |prevlogindex 2
+09:55:16.744579 node 4 pass 2| mycommit 1 leadercommit 2 |prevLogindex 2
+09:55:16.744581 node 4 pass 5
+09:55:16.744584 node 4:  commit com at 2 command 200
+09:55:16.744587 node 4 returned because of args.Entries==nil 
+09:55:16.744591 node 4 get command [] from leader 1
+09:55:16.744732 leader 1 try AE 0 time to 2 
+09:55:16.744787 node 4 react to the HB successfully
+09:55:16.744800 leader 1 try AE 0 time to 3 
+09:55:16.744886 node 3 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.744891 node 3 pass 1 |prevlogindex 2
+09:55:16.744894 node 3 pass 2| mycommit 1 leadercommit 2 |prevLogindex 2
+09:55:16.744896 node 3 pass 5
+09:55:16.744899 node 3:  commit com at 2 command 200
+09:55:16.744902 node 3 returned because of args.Entries==nil 
+09:55:16.744905 node 3 get command [] from leader 1
+09:55:16.744910 leader 1 try AE 0 time to 0 
+09:55:16.744953 node 3 react to the HB successfully
+09:55:16.744958 follower 4 AENotifyChan has -4 eles
+09:55:16.744961 follower 4 AENotifyChan has 0 eles
+09:55:16.744972 node 4 :follower reset timer
+09:55:16.744977 follower 3 AENotifyChan has -4 eles
+09:55:16.744980 follower 3 AENotifyChan has 0 eles
+09:55:16.744982 node 3 :follower reset timer
+09:55:16.745119 node 2 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.745127 node 2 pass 1 |prevlogindex 2
+09:55:16.745130 node 2 pass 2| mycommit 1 leadercommit 2 |prevLogindex 2
+09:55:16.745133 node 2 pass 5
+09:55:16.745135 node 2:  commit com at 2 command 200
+09:55:16.745138 node 2 returned because of args.Entries==nil 
+09:55:16.745141 node 2 get command [] from leader 1
+09:55:16.745224 node 2 react to the HB successfully
+09:55:16.745119 node 0 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.745237 node 0 pass 1 |prevlogindex 2
+09:55:16.745240 node 0 pass 2| mycommit 1 leadercommit 2 |prevLogindex 2
+09:55:16.745242 node 0 pass 5
+09:55:16.745244 follower 2 AENotifyChan has -4 eles
+09:55:16.745257 follower 2 AENotifyChan has 0 eles
+09:55:16.745260 node 2 :follower reset timer
+09:55:16.745245 node 0:  commit com at 2 command 200
+09:55:16.745299 node 0 returned because of args.Entries==nil 
+09:55:16.745306 node 0 get command [] from leader 1
+09:55:16.745246 follower 0 AENotifyChan has -4 eles
+09:55:16.745349 follower 0 AENotifyChan has 0 eles
+09:55:16.745352 node 0 :follower reset timer
+09:55:16.745443 node 0 react to the HB successfully
+09:55:16.747302 TEST: node 0 index 2 cmd1 200 ok true
+09:55:16.747314 TEST: node 1 index 2 cmd1 200 ok true
+09:55:16.747317 TEST: node 2 index 2 cmd1 200 ok true
+09:55:16.747320 TEST: node 3 index 2 cmd1 200 ok true
+09:55:16.747322 TEST: node 4 index 2 cmd1 200 ok true
+09:55:16.747325 get nd 5, cmd1 200
+09:55:16.747327 TEST: node 0 index 3 cmd1 0 ok false
+09:55:16.747346 TEST: node 1 index 3 cmd1 0 ok false
+09:55:16.747349 TEST: node 2 index 3 cmd1 0 ok false
+09:55:16.747355 TEST: node 3 index 3 cmd1 0 ok false
+09:55:16.747358 TEST: node 4 index 3 cmd1 0 ok false
+09:55:16.747361 node 1 receive command value 300
+09:55:16.747364 node 1  waiting 300
+09:55:16.747382 node 1 finished waiting index 3
+09:55:16.747388 TEST: node 0 index 3 cmd1 0 ok false
+09:55:16.747391 TEST: node 1 index 3 cmd1 0 ok false
+09:55:16.747394 TEST: node 2 index 3 cmd1 0 ok false
+09:55:16.747397 TEST: node 3 index 3 cmd1 0 ok false
+09:55:16.747399 TEST: node 4 index 3 cmd1 0 ok false
+09:55:16.747401 get nd 0, cmd1 -1
+09:55:16.747442 leader 1 distributing AE
+09:55:16.747455 leader 1 has the command [{300 1}]
+09:55:16.747459 node 1 before the AE send goroutine 0
+09:55:16.747463 node 1 before the AE send goroutine 2
+09:55:16.747466 node 1 before the AE send goroutine 3
+09:55:16.747469 node 1 before the AE send goroutine 4
+09:55:16.747530 leader 1 try AE 0 time to 2 
+09:55:16.747542 leader 1 try AE 0 time to 0 
+09:55:16.747534 leader 1 try AE 0 time to 4 
+09:55:16.747826 node 0 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.747836 node 0 pass 1 |prevlogindex 2
+09:55:16.747839 node 0 pass 2| mycommit 2 leadercommit 2 |prevLogindex 2
+09:55:16.747842 node 0 pass 5
+09:55:16.747844 node 0 startInd 3 , len(rf.log) 4, term 1, command 300
+09:55:16.747847 node 0 pass all
+09:55:16.747869 node 0 get command [{300 1}] from leader 1
+09:55:16.747904 node 2 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.747914 node 2 pass 1 |prevlogindex 2
+09:55:16.747943 node 2 pass 2| mycommit 2 leadercommit 2 |prevLogindex 2
+09:55:16.747949 node 2 pass 5
+09:55:16.747953 node 2 startInd 3 , len(rf.log) 4, term 1, command 300
+09:55:16.747955 node 2 pass all
+09:55:16.747538 leader 1 try AE 0 time to 3 
+09:55:16.747965 follower 0 AENotifyChan has -4 eles
+09:55:16.747969 follower 0 AENotifyChan has 0 eles
+09:55:16.747972 node 0 :follower reset timer
+09:55:16.747956 node 4 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.747978 node 4 pass 1 |prevlogindex 2
+09:55:16.747981 node 4 pass 2| mycommit 2 leadercommit 2 |prevLogindex 2
+09:55:16.747983 node 4 pass 5
+09:55:16.747985 leader 1: node 0 success get one command [{300 1}] AE prevlogindex 2 at term 1
+09:55:16.747994 leader 1: node 0 PrevLogIndex 2, loglen-1 3
+09:55:16.748002 leader 1 :node 0 AER return true | commState 3 |majority 2
+09:55:16.748005 leader 1 AE send to 0 end
+09:55:16.747985 node 4 startInd 3 , len(rf.log) 4, term 1, command 300
+09:55:16.748011 node 4 pass all
+09:55:16.748015 node 4 get command [{300 1}] from leader 1
+09:55:16.748054 node 3 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.748060 node 3 pass 1 |prevlogindex 2
+09:55:16.748079 node 3 pass 2| mycommit 2 leadercommit 2 |prevLogindex 2
+09:55:16.748082 node 3 pass 5
+09:55:16.748085 node 3 startInd 3 , len(rf.log) 4, term 1, command 300
+09:55:16.748087 node 3 pass all
+09:55:16.748092 node 3 get command [{300 1}] from leader 1
+09:55:16.748230 leader 1: node 3 success get one command [{300 1}] AE prevlogindex 2 at term 1
+09:55:16.748244 leader 1: node 3 PrevLogIndex 2, loglen-1 3
+09:55:16.748267 leader 1 :node 3 AER return true | commState 3 |majority 2
+09:55:16.748272 leader 1  commindex 3 value 300 get majority 4 upper node
+09:55:16.748275 leader 1 start currComInd 3 rf.commitIndex 2
+09:55:16.748283 leader 1:  commit com at 3 of term 1 command 300
+09:55:16.748291 leader 1 AE send to 3 end
+09:55:16.748082 leader 1: node 4 success get one command [{300 1}] AE prevlogindex 2 at term 1
+09:55:16.748299 leader 1: node 4 PrevLogIndex 2, loglen-1 3
+09:55:16.748301 leader 1 :node 4 AER return true | commState 3 |majority 2
+09:55:16.748304 leader 1 AE send to 4 end
+09:55:16.748236 follower 3 AENotifyChan has -4 eles
+09:55:16.748309 follower 3 AENotifyChan has 0 eles
+09:55:16.748311 node 3 :follower reset timer
+09:55:16.747987 follower 4 AENotifyChan has -4 eles
+09:55:16.748318 follower 4 AENotifyChan has 0 eles
+09:55:16.748320 node 4 :follower reset timer
+09:55:16.747960 node 2 get command [{300 1}] from leader 1
+09:55:16.748398 leader 1: node 2 success get one command [{300 1}] AE prevlogindex 2 at term 1
+09:55:16.748402 leader 1: node 2 PrevLogIndex 2, loglen-1 3
+09:55:16.748405 leader 1 :node 2 AER return true | commState 3 |majority 2
+09:55:16.748408 leader 1 AE send to 2 end
+09:55:16.747963 follower 2 AENotifyChan has -4 eles
+09:55:16.748413 follower 2 AENotifyChan has 0 eles
+09:55:16.748416 node 2 :follower reset timer
+09:55:16.767872 TEST: node 0 index 3 cmd1 0 ok false
+09:55:16.767941 TEST: node 1 index 3 cmd1 300 ok true
+09:55:16.767946 TEST: node 2 index 3 cmd1 0 ok false
+09:55:16.767949 TEST: node 3 index 3 cmd1 0 ok false
+09:55:16.767951 TEST: node 4 index 3 cmd1 0 ok false
+09:55:16.767954 get nd 1, cmd1 300
+09:55:16.788359 TEST: node 0 index 3 cmd1 0 ok false
+09:55:16.788443 TEST: node 1 index 3 cmd1 300 ok true
+09:55:16.788448 TEST: node 2 index 3 cmd1 0 ok false
+09:55:16.788451 TEST: node 3 index 3 cmd1 0 ok false
+09:55:16.788453 TEST: node 4 index 3 cmd1 0 ok false
+09:55:16.788457 get nd 1, cmd1 300
+09:55:16.809260 TEST: node 0 index 3 cmd1 0 ok false
+09:55:16.809322 TEST: node 1 index 3 cmd1 300 ok true
+09:55:16.809327 TEST: node 2 index 3 cmd1 0 ok false
+09:55:16.809331 TEST: node 3 index 3 cmd1 0 ok false
+09:55:16.809334 TEST: node 4 index 3 cmd1 0 ok false
+09:55:16.809336 get nd 1, cmd1 300
+09:55:16.829881 TEST: node 0 index 3 cmd1 0 ok false
+09:55:16.829963 TEST: node 1 index 3 cmd1 300 ok true
+09:55:16.829968 TEST: node 2 index 3 cmd1 0 ok false
+09:55:16.829971 TEST: node 3 index 3 cmd1 0 ok false
+09:55:16.829974 TEST: node 4 index 3 cmd1 0 ok false
+09:55:16.829977 get nd 1, cmd1 300
+09:55:16.847864 leader 1 send HB
+09:55:16.847925 leader 1 distributing AE
+09:55:16.847930 leader 1 command==nil
+09:55:16.847934 node 1 before the AE send goroutine 0
+09:55:16.847940 node 1 before the AE send goroutine 2
+09:55:16.847943 node 1 before the AE send goroutine 3
+09:55:16.847946 node 1 before the AE send goroutine 4
+09:55:16.847955 leader 1 try AE 0 time to 4 
+09:55:16.848242 node 4 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.848266 node 4 pass 1 |prevlogindex 3
+09:55:16.848269 node 4 pass 2| mycommit 2 leadercommit 3 |prevLogindex 3
+09:55:16.848272 node 4 pass 5
+09:55:16.848291 node 4:  commit com at 3 command 300
+09:55:16.848294 node 4 returned because of args.Entries==nil 
+09:55:16.848325 node 4 get command [] from leader 1
+09:55:16.848445 node 4 react to the HB successfully
+09:55:16.848452 leader 1 try AE 0 time to 0 
+09:55:16.848662 node 0 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.848673 node 0 pass 1 |prevlogindex 3
+09:55:16.848676 node 0 pass 2| mycommit 2 leadercommit 3 |prevLogindex 3
+09:55:16.848678 node 0 pass 5
+09:55:16.848681 node 0:  commit com at 3 command 300
+09:55:16.848684 node 0 returned because of args.Entries==nil 
+09:55:16.848703 node 0 get command [] from leader 1
+09:55:16.848848 node 0 react to the HB successfully
+09:55:16.848855 leader 1 try AE 0 time to 2 
+09:55:16.849082 node 2 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.849090 node 2 pass 1 |prevlogindex 3
+09:55:16.849093 node 2 pass 2| mycommit 2 leadercommit 3 |prevLogindex 3
+09:55:16.849095 node 2 pass 5
+09:55:16.849114 node 2:  commit com at 3 command 300
+09:55:16.849117 node 2 returned because of args.Entries==nil 
+09:55:16.849121 node 2 get command [] from leader 1
+09:55:16.849263 node 2 react to the HB successfully
+09:55:16.849289 leader 1 try AE 0 time to 3 
+09:55:16.849391 node 3 get AE imply leader 1 | args.Term 1,  curTerm 1
+09:55:16.849396 node 3 pass 1 |prevlogindex 3
+09:55:16.849399 node 3 pass 2| mycommit 2 leadercommit 3 |prevLogindex 3
+09:55:16.849422 node 3 pass 5
+09:55:16.849425 node 3:  commit com at 3 command 300
+09:55:16.849428 node 3 returned because of args.Entries==nil 
+09:55:16.849431 node 3 get command [] from leader 1
+09:55:16.849605 node 3 react to the HB successfully
+09:55:16.849614 follower 4 AENotifyChan has -4 eles
+09:55:16.849617 follower 4 AENotifyChan has 0 eles
+09:55:16.849619 node 4 :follower reset timer
+09:55:16.849625 follower 0 AENotifyChan has -4 eles
+09:55:16.849628 follower 0 AENotifyChan has 0 eles
+09:55:16.849631 node 0 :follower reset timer
+09:55:16.849634 follower 2 AENotifyChan has -4 eles
+09:55:16.849637 follower 2 AENotifyChan has 0 eles
+09:55:16.849639 node 2 :follower reset timer
+09:55:16.849644 follower 3 AENotifyChan has -4 eles
+09:55:16.849646 follower 3 AENotifyChan has 0 eles
+09:55:16.849664 node 3 :follower reset timer
+09:55:16.850851 TEST: node 0 index 3 cmd1 300 ok true
+09:55:16.850869 TEST: node 1 index 3 cmd1 300 ok true
+09:55:16.850873 TEST: node 2 index 3 cmd1 300 ok true
+09:55:16.850876 TEST: node 3 index 3 cmd1 300 ok true
+09:55:16.850878 TEST: node 4 index 3 cmd1 300 ok true
+09:55:16.850881 get nd 5, cmd1 300
+  ... Passed --   0.7  5   52    3
+09:55:16.850892 node 0 exited
+09:55:16.850895 node 1 exited
+09:55:16.850897 node 2 exited
+09:55:16.850917 node 3 exited
+09:55:16.850919 node 4 exited
+09:55:16.851108 sizeof peers=3
+09:55:16.851124 0: start...
+09:55:16.851147 node 0 elecTimeOut :265 
+09:55:16.851188 sizeof peers=3
+09:55:16.851194 1: start...
+09:55:16.851206 node 1 elecTimeOut :468 
+09:55:16.851275 sizeof peers=3
+09:55:16.851281 2: start...
+09:55:16.851293 node 2 elecTimeOut :374 
+Test (2B): agreement despite follower disconnection ...
+09:55:16.851320 node 1 receive command value 101
+09:55:16.851324 node 2 receive command value 101
+09:55:16.851327 node 0 receive command value 101
+09:55:16.851411 candidate 0 TERM: 0 len of rf.log 1 
+09:55:16.851424 candidate 0 started 
+09:55:16.851429 candidate 0 try RV 0 time to 2 
+09:55:16.851603 loglen -1
+09:55:16.851647 candidate 2 TERM: 0 len of rf.log 1 
+panic: runtime error: index out of range
+
+goroutine 226 [running]:
+raft.(*Raft).RequestVote(0xc42011c240, 0xc4202cad60, 0xc4201ffab0)
+	/home/miaogen/6.824-golabs-2018/src/raft/raft.go:221 +0x8b7
+reflect.Value.call(0xc4200a8420, 0xc4201de160, 0x13, 0x5d7f46, 0x4, 0xc420219b98, 0x3, 0x3, 0x58a2c0, 0x0, ...)
+	/usr/local/go/src/reflect/value.go:447 +0x969
+reflect.Value.Call(0xc4200a8420, 0xc4201de160, 0x13, 0xc420219b98, 0x3, 0x3, 0x0, 0x0, 0x0)
+	/usr/local/go/src/reflect/value.go:308 +0xa4
+labrpc.(*Service).dispatch(0xc4202c8f00, 0x5da144, 0xb, 0x592e00, 0xc42029f380, 0x5da13f, 0x10, 0x5fda00, 0x58a280, 0xc4201a2540, ...)
+	/home/miaogen/6.824-golabs-2018/src/labrpc/labrpc.go:478 +0x67f
+labrpc.(*Server).dispatch(0xc4202cd300, 0x592e00, 0xc42029f380, 0x5da13f, 0x10, 0x5fda00, 0x58a280, 0xc4201a2540, 0x5c, 0xb4, ...)
+	/home/miaogen/6.824-golabs-2018/src/labrpc/labrpc.go:402 +0x4f2
+labrpc.(*Network).ProcessReq.func1(0xc4202cd300, 0x592e00, 0xc42029f380, 0x5da13f, 0x10, 0x5fda00, 0x58a280, 0xc4201a2540, 0x5c, 0xb4, ...)
+	/home/miaogen/6.824-golabs-2018/src/labrpc/labrpc.go:229 +0x60
+created by labrpc.(*Network).ProcessReq
+	/home/miaogen/6.824-golabs-2018/src/labrpc/labrpc.go:228 +0x133
+exit status 2
+FAIL	raft	0.679s

@@ -335,12 +335,13 @@ func TestBackup2B(t *testing.T) {
 	cfg.begin("Test (2B): leader backs up quickly over incorrect follower logs")
 
 	cfg.one(rand.Int(), servers, true)
-
 	// put leader and one follower in a partition
 	leader1 := cfg.checkOneLeader()
+	DPrintf("TEST2: get leader %d ", leader1)
 	cfg.disconnect((leader1 + 2) % servers)
 	cfg.disconnect((leader1 + 3) % servers)
 	cfg.disconnect((leader1 + 4) % servers)
+	DPrintf("TEST2: disconnect %d %d %d", (leader1+2)%servers, (leader1+3)%servers, (leader1+4)%servers)
 
 	// submit lots of commands that won't commit
 	for i := 0; i < 50; i++ {
@@ -356,6 +357,7 @@ func TestBackup2B(t *testing.T) {
 	cfg.connect((leader1 + 2) % servers)
 	cfg.connect((leader1 + 3) % servers)
 	cfg.connect((leader1 + 4) % servers)
+	DPrintf("TEST2: connect %d %d %d disconnect the other", (leader1+2)%servers, (leader1+3)%servers, (leader1+4)%servers)
 
 	// lots of successful commands to new group.
 	for i := 0; i < 50; i++ {
@@ -365,11 +367,13 @@ func TestBackup2B(t *testing.T) {
 	// now another partitioned leader and one follower
 	leader2 := cfg.checkOneLeader()
 	other := (leader1 + 2) % servers
+
 	if leader2 == other {
 		other = (leader2 + 1) % servers
 	}
 	cfg.disconnect(other)
 
+	DPrintf("TEST2: leader %d disconnect %d", leader2, other)
 	// lots more commands that won't commit
 	for i := 0; i < 50; i++ {
 		cfg.rafts[leader2].Start(rand.Int())
@@ -385,6 +389,7 @@ func TestBackup2B(t *testing.T) {
 	cfg.connect((leader1 + 1) % servers)
 	cfg.connect(other)
 
+	DPrintf("TEST2: connect %d %d %d", leader1, (leader1+1)%servers, other)
 	// lots of successful commands to new group.
 	for i := 0; i < 50; i++ {
 		cfg.one(rand.Int(), 3, true)
@@ -392,9 +397,13 @@ func TestBackup2B(t *testing.T) {
 
 	// now everyone
 	for i := 0; i < servers; i++ {
+		DPrintf("TEST2: connect %d", i)
 		cfg.connect(i)
 	}
-	cfg.one(rand.Int(), servers, true)
+	p := rand.Int()
+	DPrintf("TEST2: final command p=%d", p)
+	cfg.one(p, servers, true)
+	DPrintf("TEST2: all")
 
 	cfg.end()
 }
