@@ -670,14 +670,14 @@ func TestFigure82C(t *testing.T) {
 				}
 			}
 		}
-
+		var ms int64
 		if (rand.Int() % 1000) < 100 {
-			ms := rand.Int63() % (int64(RaftElectionTimeout/time.Millisecond) / 2)
-			time.Sleep(time.Duration(ms) * time.Millisecond)
+			ms = rand.Int63() % (int64(RaftElectionTimeout/time.Millisecond) / 2)
 		} else {
-			ms := (rand.Int63() % 13)
-			time.Sleep(time.Duration(ms) * time.Millisecond)
+			ms = (rand.Int63() % 13)
 		}
+		DPrintf("TEST3: sleep %d ms", ms)
+		time.Sleep(time.Duration(ms) * time.Millisecond)
 
 		if leader != -1 {
 			cfg.crash1(leader)
@@ -694,14 +694,16 @@ func TestFigure82C(t *testing.T) {
 		}
 	}
 
+	DPrintf("TEST3: connect all")
 	for i := 0; i < servers; i++ {
 		if cfg.rafts[i] == nil {
 			cfg.start1(i)
 			cfg.connect(i)
 		}
 	}
-
-	cfg.one(rand.Int(), servers, true)
+	ri := rand.Int()
+	DPrintf("TEST3: rand value %d ", ri)
+	cfg.one(ri, servers, true)
 
 	cfg.end()
 }
@@ -757,35 +759,41 @@ func TestFigure8Unreliable2C(t *testing.T) {
 			}
 		}
 
+		var ms int64
 		if (rand.Int() % 1000) < 100 {
-			ms := rand.Int63() % (int64(RaftElectionTimeout/time.Millisecond) / 2)
-			time.Sleep(time.Duration(ms) * time.Millisecond)
+			ms = rand.Int63() % (int64(RaftElectionTimeout/time.Millisecond) / 2)
 		} else {
-			ms := (rand.Int63() % 13)
-			time.Sleep(time.Duration(ms) * time.Millisecond)
+			ms = (rand.Int63() % 13)
 		}
+		DPrintf("TEST3: sleep %d ms", ms)
+		time.Sleep(time.Duration(ms) * time.Millisecond)
 
 		if leader != -1 && (rand.Int()%1000) < int(RaftElectionTimeout/time.Millisecond)/2 {
 			cfg.disconnect(leader)
+			DPrintf("TEST3: disconnect %d", leader)
 			nup -= 1
 		}
 
 		if nup < 3 {
 			s := rand.Int() % servers
 			if cfg.connected[s] == false {
+				DPrintf("TEST3: connect %d", s)
 				cfg.connect(s)
 				nup += 1
 			}
 		}
 	}
 
+	DPrintf("TEST3: connect all")
 	for i := 0; i < servers; i++ {
 		if cfg.connected[i] == false {
 			cfg.connect(i)
 		}
 	}
 
-	cfg.one(rand.Int()%10000, servers, true)
+	ri := rand.Int() % 10000
+	DPrintf("TEST3: rand value %d ", ri)
+	cfg.one(ri, servers, true)
 
 	cfg.end()
 }
