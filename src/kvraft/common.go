@@ -15,6 +15,9 @@ type PutAppendArgs struct {
 	// You'll have to add definitions here.
 	// Field names must start with capital letters,
 	// otherwise RPC will break.
+
+	ClientID int64
+	CommSeq  int
 }
 
 type PutAppendReply struct {
@@ -32,3 +35,12 @@ type GetReply struct {
 	Err         Err
 	Value       string
 }
+
+//op type
+type OpType int
+
+const (
+	GetType    OpType = 1
+	PutType    OpType = 2
+	AppendType OpType = 3
+)

@@ -295,6 +295,7 @@ func (rf *Raft) AppendEntry(args *AppendEntry, reply *AppendEntryReply) {
 		}
 	}()
 
+	DPrintf("TEST4: entries in append entries %v ", args.Entries)
 	//1. Reply false if term < currentTerm (§5.1)
 	curTerm := rf.currentTerm
 	reply.Me = rf.me
@@ -382,16 +383,13 @@ func (rf *Raft) AppendEntry(args *AppendEntry, reply *AppendEntryReply) {
 	DPrintf("node %d pass 5", rf.me)
 	//nil implies the HB packet
 	for ind := range rf.log[preCommitIndex:aftCommitIndex] {
-		//if aftCommitIndex <= rf.commitIndex {
-		//	break
-		//}
 		var applyMsg ApplyMsg
 		applyMsg.CommandIndex = ind + preCommitIndex + 1
 		rf.mu.Lock()
 		applyMsg.Command = rf.log[ind+preCommitIndex+1].Command
 		rf.mu.Unlock()
 		applyMsg.CommandValid = true
-		DPrintf("node %d: commit com at %d command %d", rf.me, applyMsg.CommandIndex, applyMsg.Command)
+		DPrintf("node %d: commit com at %d command %v", rf.me, applyMsg.CommandIndex, applyMsg.Command)
 		rf.applyCh <- applyMsg
 	}
 	rf.mu.Lock()
@@ -417,7 +415,7 @@ func (rf *Raft) AppendEntry(args *AppendEntry, reply *AppendEntryReply) {
 				rf.log[startInd].Command = oneLog.Command
 			}
 		}
-		DPrintf("node %d startInd %d , len(rf.log) %d, term %d, command %d", rf.me, startInd, len(rf.log), rf.log[startInd].Term, rf.log[startInd].Command)
+		DPrintf("node %d startInd %d , len(rf.log) %d, term %d, command %v", rf.me, startInd, len(rf.log), rf.log[startInd].Term, rf.log[startInd].Command)
 		startInd++
 	}
 	if startInd < len(rf.log)-1 && rf.log[startInd-1].Term > rf.log[len(rf.log)-1].Term {
@@ -503,7 +501,7 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 		isLeader = false
 		return index, curTerm, isLeader
 	}
-	DPrintf("node %d  waiting %d", rf.me, command)
+	DPrintf("node %d  waiting %v", rf.me, command)
 	rf.commandToBeExec <- true
 	rf.mu.Lock()
 	rf.log = append(rf.log, CommandTerm{command, curTerm})
@@ -511,8 +509,13 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 	rf.mu.Unlock()
 	rf.matchIndex[rf.me] = index
 	rf.persist()
-	DPrintf("node %d finished waiting index %d command %d", rf.me, index, command)
+	DPrintf("node %d finished waiting index %d command %v", rf.me, index, command)
 	return index, curTerm, isLeader
+}
+
+//GetLeader: for upper service to get current leader number
+func (rf *Raft) GetLeaderNum() int {
+	return rf.leaderNum
 }
 
 //
@@ -650,6 +653,7 @@ func (rf *Raft) LeaderProcess(electionTimeOut int, applyCh chan ApplyMsg) int {
 	//command id
 	var state uint32
 	istermTimeOut := false
+	//no use
 	commandIdList := make([]uint32, 256)
 	type TermIndex struct {
 		Term            int
@@ -658,6 +662,7 @@ func (rf *Raft) LeaderProcess(electionTimeOut int, applyCh chan ApplyMsg) int {
 	IndexIte := nextInd - 1
 	var termList []TermIndex
 	curLastTerm := rf.log[IndexIte].Term + 1
+	//get cache of term
 	t1 := time.Now()
 	for IndexIte >= 0 {
 		if rf.log[IndexIte].Term != curLastTerm {
@@ -665,7 +670,7 @@ func (rf *Raft) LeaderProcess(electionTimeOut int, applyCh chan ApplyMsg) int {
 			curLastTerm = rf.log[IndexIte].Term
 		}
 		if rf.log[IndexIte].Term > curLastTerm {
-			DPrintf("leader %d: ATTENTION term %d comand %d ", curLastTerm, rf.log[IndexIte-1].Command)
+			DPrintf("leader %d: ATTENTION term %d comand %v ", curLastTerm, rf.log[IndexIte-1].Command)
 		}
 		IndexIte--
 	}
@@ -716,6 +721,8 @@ func (rf *Raft) LeaderProcess(electionTimeOut int, applyCh chan ApplyMsg) int {
 				currNextInd := rf.nextIndex[ind]
 				if rf.nextIndex[ind] < logLen {
 					appEn.Entries = append(appEn.Entries, rf.log[currNextInd:]...)
+					//appEn.Entries = append(appEn.Entries, CommandTerm{123, 456})
+					DPrintf("TEST4: entries %v ", appEn.Entries)
 				}
 				appEn.PrevLogIndex = currNextInd - 1
 				prevLogIndex := appEn.PrevLogIndex
@@ -823,7 +830,7 @@ func (rf *Raft) LeaderProcess(electionTimeOut int, applyCh chan ApplyMsg) int {
 										rf.commitIndex = i
 									}
 									rf.mu.Unlock()
-									DPrintf("leader %d: commit com at %d of term %d command %d term %d", rf.me, i, rf.log[i].Term, rf.log[i].Command, rf.log[i].Term)
+									DPrintf("leader %d: commit com at %d of term %d command %v term %d", rf.me, i, rf.log[i].Term, rf.log[i].Command, rf.log[i].Term)
 								}
 								DPrintf("leader %d AE send to %d end", rf.me, ind)
 								return
@@ -1013,7 +1020,7 @@ func Make(peers []*labrpc.ClientEnd, me int,
 
 	rf.applyCh = applyCh
 	if len(rf.log) < 1 {
-		rf.log = append(rf.log, CommandTerm{0, 0})
+		rf.log = append(rf.log, CommandTerm{nil, 0})
 	}
 	rf.commitIndex = 0
 	rf.lastApplied = 0
