@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const Debug = 0
+const Debug = 1
 
 func init() {
 	log.SetFlags(log.Lmicroseconds)
@@ -47,8 +47,10 @@ type KVServer struct {
 
 	// Your definitions here.
 	rsm                 map[string]string
+	rsmRWLock           sync.RWMutex
 	curCommitIndex      int
 	ClientMaxRequestSeq map[int64]int
+	seqRWLock           sync.RWMutex
 }
 
 func (kv *KVServer) Get(args *GetArgs, reply *GetReply) {
@@ -76,9 +78,9 @@ func (kv *KVServer) Get(args *GetArgs, reply *GetReply) {
 			return
 		}
 		if kv.curCommitIndex >= index {
-			kv.mu.Lock()
+			kv.rsmRWLock.Lock()
 			reply.Value = kv.rsm[args.Key]
-			kv.mu.Unlock()
+			kv.rsmRWLock.Unlock()
 			DPrintf("server %d: reply to get key %v value %v", kv.me, args.Key, reply.Value)
 			break
 		} else {
@@ -112,12 +114,12 @@ func (kv *KVServer) PutAppend(args *PutAppendArgs, reply *PutAppendReply) {
 	comm.ProposalID = args.CommSeq
 	comm.Key = args.Key
 	comm.Value = args.Value
+	kv.seqRWLock.Lock()
 	if _, ok := kv.ClientMaxRequestSeq[args.ClientID]; !ok {
 		DPrintf("server %d add new client %d", kv.me, args.ClientID)
-		kv.mu.Lock()
 		kv.ClientMaxRequestSeq[args.ClientID] = 0
-		kv.mu.Unlock()
 	}
+	kv.seqRWLock.Unlock()
 	if leaderNum != kv.me {
 		reply.WrongLeader = true
 		DPrintf("kv %d: is not leader (pa) (%d is)", kv.me, leaderNum)
@@ -137,7 +139,7 @@ func (kv *KVServer) PutAppend(args *PutAppendArgs, reply *PutAppendReply) {
 			break
 		} else {
 			DPrintf("server %d waitting 5ms ", kv.me)
-			time.Sleep(5 * time.Millisecond)
+			time.Sleep(3 * time.Millisecond)
 		}
 	}
 	DPrintf("server %d after PA ", kv.me)
@@ -194,6 +196,10 @@ func mainProcess(kv *KVServer) {
 				kv.curCommitIndex = commIndex
 			}
 			kv.mu.Unlock()
+			if kv.maxraftstate < kv.rf.GetRaftStateSize()+2 {
+				DPrintf("kv %d: maxraftstate %v, currRaftStateSize %v go to snapshot", kv.me, kv.maxraftstate, kv.rf.GetRaftStateSize())
+				//kv.rf.Snapshots(kv.ClientMaxRequestSeq)
+			}
 		}
 	}
 }

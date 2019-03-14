@@ -73,7 +73,7 @@ type Raft struct {
 	// Your data here (2A, 2B, 2C).
 	// Look at the paper's Figure 2 for a description of what
 	// state a Raft server must maintain.
-	///all servers
+	// all servers
 
 	leaderNum   int
 	currentTerm int
@@ -87,15 +87,16 @@ type Raft struct {
 	///use to track the state of replica
 	nextIndex  []int
 	matchIndex []int
-	//for DEBUG
+	//for DEBUG and exit
 	exitFlag bool
 
 	//the channel to get AE
 	AENotifyChan chan bool
 	//variables to sequencely execute the command
 	commandToBeExec chan bool
-	//taskWL          sync.Mutex // Lock to protect shared access to this peer's state    ---no need the only pos of this chan be writed
-	applyCh chan ApplyMsg
+	applyCh         chan ApplyMsg
+
+	lastIndexInSnapshot int
 }
 
 //AppendEntry to send
@@ -161,6 +162,39 @@ func (rf *Raft) persist() {
 	data := w.Bytes()
 	rf.persister.SaveRaftState(data)
 	DPrintf("node %d: persist successfully ", rf.me)
+
+}
+
+//the argu is
+func (rf *Raft) Snapshots(ClientMaxRequestSeq map[int64]int) {
+	w := new(bytes.Buffer)
+	//e := labgob.NewEncoder(w)
+	endIndex := rf.commitIndex - 1
+	if endIndex < 1 {
+		return
+	}
+	originBytes := rf.persister.ReadSnapshot()
+	var prelog []CommandTerm
+	if len(originBytes) > 0 {
+		r := bytes.NewBuffer(originBytes)
+		d := labgob.NewDecoder(r)
+		if d.Decode(&prelog) != nil {
+			panic("first phase read persist error ")
+		}
+		//OPTIMIZATION NEEDED: get the lastIndex from snapshot from preSnapshot and verify
+
+	}
+	//pay attention to the sequences of varibles
+	//e.Encode()
+
+	data := w.Bytes()
+	rf.persister.SaveRaftState(data)
+	DPrintf("node %d: snapshot successfully ", rf.me)
+
+}
+
+func (rf *Raft) GetRaftStateSize() int {
+	return rf.persister.RaftStateSize()
 }
 
 //
@@ -171,18 +205,6 @@ func (rf *Raft) readPersist(data []byte) {
 		return
 	}
 	// Your code here (2C).
-	// Example:
-	// r := bytes.NewBuffer(data)
-	// d := labgob.NewDecoder(r)
-	// var xxx
-	// var yyy
-	// if d.Decode(&xxx) != nil ||
-	//    d.Decode(&yyy) != nil {
-	//   error...
-	// } else {
-	//   rf.xxx = xxx
-	//   rf.yyy = yyy
-	// }
 
 	//my code
 	r := bytes.NewBuffer(data)
@@ -191,10 +213,6 @@ func (rf *Raft) readPersist(data []byte) {
 	var log []CommandTerm
 	var exitFlag bool
 
-	//var lastApplied int
-	//var nextIndex []int
-	//var matchIndex []int
-	//var xitFlag bool
 	if d.Decode(&currentTerm) != nil || d.Decode(&log) != nil {
 		panic("first phase read persist error ")
 	} else {
