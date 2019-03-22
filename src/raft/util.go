@@ -12,7 +12,7 @@ const Debug = 0
 
 func init() {
 	log.SetFlags(log.Lmicroseconds)
-	outputFile, err := os.OpenFile("raft.log", os.O_WRONLY|os.O_CREATE, 0666)
+	outputFile, err := os.OpenFile("raft.log", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		panic("can't open raft.log")
 	}

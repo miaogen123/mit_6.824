@@ -4,13 +4,15 @@ import (
 	"crypto/rand"
 	"labrpc"
 	"math/big"
+	"sync"
 	"time"
 )
 
 type Clerk struct {
 	servers []*labrpc.ClientEnd
 	// You will have to modify this struct.
-	ID          int64
+	mu          sync.Mutex
+	ID          int32
 	commSeq     int
 	LeaderIndex int
 	int
@@ -28,7 +30,7 @@ func MakeClerk(servers []*labrpc.ClientEnd) *Clerk {
 	ck.servers = servers
 	ck.LeaderIndex = -1
 	ck.commSeq = 1
-	ck.ID = nrand()
+	ck.ID = int32(nrand())
 	// You'll have to add code here.
 	return ck
 }
@@ -53,6 +55,11 @@ func (ck *Clerk) Get(key string) string {
 	DPrintf("client: %v reqeust get key:%s", ck.ID, key)
 	var leaderNum int
 	var ret string
+	ck.mu.Lock()
+	getArgs.CommSeq = ck.commSeq
+	ck.commSeq++
+	ck.mu.Unlock()
+	getArgs.ClientID = ck.ID
 	for true {
 		getReply := &GetReply{}
 		if ck.LeaderIndex != -1 {
@@ -97,9 +104,11 @@ func (ck *Clerk) PutAppend(key string, value string, op string) {
 	paArgs.Value = value
 	paArgs.Op = op
 	paArgs.ClientID = ck.ID
+	ck.mu.Lock()
 	paArgs.CommSeq = ck.commSeq
 	ck.commSeq++
-	DPrintf("client: %v reqeust pa ID %d  %s key:%s value:%s", ck.ID, ck.commSeq, op, key, value)
+	ck.mu.Unlock()
+	DPrintf("client: %v reqeust pa ID %d  %s key:%s value:%s", ck.ID, paArgs.CommSeq, op, key, value)
 	var leaderNum int
 	for true {
 		paReply := &PutAppendReply{}
@@ -123,7 +132,7 @@ func (ck *Clerk) PutAppend(key string, value string, op string) {
 			break
 		}
 	}
-	DPrintf("client: %v end reqeust pa ID %d  %s key:%s ", ck.ID, ck.commSeq, op, key)
+	DPrintf("client: %v end reqeust pa ID %d  %s key:%s ", ck.ID, paArgs.CommSeq, op, key)
 }
 
 func (ck *Clerk) Put(key string, value string) {

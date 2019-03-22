@@ -10,13 +10,16 @@ import (
 	"time"
 )
 
-const Debug = 1
+const Debug = 0
+
+var g_kv *KVServer
 
 func init() {
 	log.SetFlags(log.Lmicroseconds)
 }
 
 func DPrintf(format string, a ...interface{}) (n int, err error) {
+	//if Debug > 0 && g_kv.rf.GetLeaderNum() == g_kv.me {
 	if Debug > 0 {
 		//log.Printf(format, a...)
 		fmt.Printf("%v", time.Now())
@@ -31,7 +34,7 @@ type Op struct {
 	// Your definitions here.
 	// Field names must start with capital letters,
 	// otherwise RPC will break.
-	ClientID   int64
+	ClientID   int32
 	ProposalID int
 	Optype     OpType
 	Key        string
@@ -46,11 +49,12 @@ type KVServer struct {
 	maxraftstate int // snapshot if log grows this big
 
 	// Your definitions here.
-	rsm                 map[string]string
-	rsmRWLock           sync.RWMutex
+	rsm map[string]string
+	//rsmRWLock           sync.RWMutex
 	curCommitIndex      int
-	ClientMaxRequestSeq map[int64]int
-	seqRWLock           sync.RWMutex
+	ClientMaxRequestSeq map[int32]int
+	//seqRWLock           sync.RWMutex
+	resultMap map[int64]string
 }
 
 func (kv *KVServer) Get(args *GetArgs, reply *GetReply) {
@@ -63,12 +67,13 @@ func (kv *KVServer) Get(args *GetArgs, reply *GetReply) {
 		return
 	}
 	var comm Op
-	//comm.ClientID = 1
-	//comm.ProposalID = 1
+	comm.ClientID = args.ClientID
+	comm.ProposalID = args.CommSeq
 	comm.Optype = GetType
 	comm.Key = args.Key
 	//wait util the success
-	index, _, _ := kv.rf.Start(comm)
+	commID := int64(comm.ClientID)<<32 + int64(comm.ProposalID)
+	kv.rf.Start(comm)
 	for true {
 		//need a timeout handler
 		leaderNum := kv.rf.GetLeaderNum()
@@ -77,15 +82,20 @@ func (kv *KVServer) Get(args *GetArgs, reply *GetReply) {
 			DPrintf("kv %d: is not leader (get) (%d is)", kv.me, leaderNum)
 			return
 		}
-		if kv.curCommitIndex >= index {
-			kv.rsmRWLock.Lock()
-			reply.Value = kv.rsm[args.Key]
-			kv.rsmRWLock.Unlock()
+		//kv.seqRWLock.RLock()
+		kv.mu.Lock()
+		_, ok := kv.resultMap[commID]
+		if ok {
+			reply.Value = kv.resultMap[commID]
+			kv.mu.Unlock()
+			//kv.seqRWLock.RUnlock()
 			DPrintf("server %d: reply to get key %v value %v", kv.me, args.Key, reply.Value)
 			break
-		} else {
-			time.Sleep(5 * time.Millisecond)
 		}
+		kv.mu.Unlock()
+		//kv.seqRWLock.RLock()
+		DPrintf("server %d waitting 2ms clientiD %d seq %d", kv.me, comm.ClientID, comm.ProposalID)
+		time.Sleep(2 * time.Millisecond)
 	}
 	DPrintf("server %d get: return value will be seen in client output", kv.me)
 }
@@ -114,12 +124,14 @@ func (kv *KVServer) PutAppend(args *PutAppendArgs, reply *PutAppendReply) {
 	comm.ProposalID = args.CommSeq
 	comm.Key = args.Key
 	comm.Value = args.Value
-	kv.seqRWLock.Lock()
+	//kv.seqRWLock.Lock()
+	kv.mu.Lock()
 	if _, ok := kv.ClientMaxRequestSeq[args.ClientID]; !ok {
 		DPrintf("server %d add new client %d", kv.me, args.ClientID)
 		kv.ClientMaxRequestSeq[args.ClientID] = 0
 	}
-	kv.seqRWLock.Unlock()
+	kv.mu.Unlock()
+	//kv.seqRWLock.Unlock()
 	if leaderNum != kv.me {
 		reply.WrongLeader = true
 		DPrintf("kv %d: is not leader (pa) (%d is)", kv.me, leaderNum)
@@ -138,7 +150,7 @@ func (kv *KVServer) PutAppend(args *PutAppendArgs, reply *PutAppendReply) {
 		if kv.curCommitIndex >= index {
 			break
 		} else {
-			DPrintf("server %d waitting 5ms ", kv.me)
+			DPrintf("server %d waitting 3ms clientiD %d seq %d", kv.me, comm.ClientID, comm.ProposalID)
 			time.Sleep(3 * time.Millisecond)
 		}
 	}
@@ -159,47 +171,63 @@ func (kv *KVServer) Kill() {
 //listen the log
 func mainProcess(kv *KVServer) {
 	var applyMsg raft.ApplyMsg
+	snapshottingFlag := false
 	for true {
 		select {
 		case applyMsg = <-kv.applyCh:
+			if !applyMsg.CommandValid {
+				kv.mu.Lock()
+				kv.ClientMaxRequestSeq = applyMsg.ClientMaxRequestSeq
+				kv.rsm = applyMsg.Rsm
+				kv.mu.Unlock()
+				DPrintf("kv %d:end read snapshot client max %v", kv.me, kv.ClientMaxRequestSeq)
+				break
+			}
 			commIndex := applyMsg.CommandIndex
 			commOp := applyMsg.Command.(Op)
 			kv.mu.Lock()
 			switch commOp.Optype {
 			case GetType:
-				DPrintf("kv %d: get Type:read %v", kv.me, commOp.Key)
+				commID := int64(commOp.ClientID)<<32 + int64(commOp.ProposalID)
+				//kv.seqRWLock.Lock()
+				kv.resultMap[commID] = kv.rsm[commOp.Key]
+				DPrintf("kv %d: get Type:GET %v value %v from %d + %d", kv.me, commOp.Key, kv.resultMap[commID], commOp.ClientID, commOp.ProposalID)
+				//kv.seqRWLock.Unlock()
 			case PutType:
 				if commOp.ProposalID <= kv.ClientMaxRequestSeq[commOp.ClientID] {
 					DPrintf("kv %d: get REPEAT Type:put %v, clientID:%v ProposalID:%v,IGNORED", kv.me, commOp.ClientID, commOp.ProposalID, commOp.Key)
 					break
 				}
+				DPrintf("kv %d client %d seq %d clientMaxSeq %d", kv.me, commOp.ClientID, commOp.ProposalID, kv.ClientMaxRequestSeq[commOp.ClientID])
 				kv.ClientMaxRequestSeq[commOp.ClientID] = commOp.ProposalID
 				kv.rsm[commOp.Key] = commOp.Value
-				DPrintf("kv %d: get Type:put %v after value %v", kv.me, commOp.Key, kv.rsm[commOp.Key])
-				//DPrintf("kv %d: get Type:put %s value %s", kv.me, commOp.Key, commOp.value)
-				//DPrintf("kv %d: get %v value %v", kv.me, commOp.clientID, commOp.proposalID)
-
+				DPrintf("kv %d: get Type:PUT %v value %v after value %v from %d + %d", kv.me, commOp.Key, commOp.Value, kv.rsm[commOp.Key], commOp.ClientID, commOp.ProposalID)
 			case AppendType:
 				if commOp.ProposalID <= kv.ClientMaxRequestSeq[commOp.ClientID] {
-					DPrintf("kv %d: get REPEAT Type:APPEND %v, clientID:%v ProposalID:%v,IGNORED", kv.me, commOp.ClientID, commOp.ProposalID, commOp.Key)
+					DPrintf("kv %d: get REPEAT Type: clientID:%v ProposalID:%v APPEND %v VAlue %v,IGNORED", kv.me, commOp.ClientID, commOp.ProposalID, commOp.Key, commOp.Value)
 					break
 				}
+				DPrintf("kv %d client %d seq %d clientMaxSeq %d", kv.me, commOp.ClientID, commOp.ProposalID, kv.ClientMaxRequestSeq[commOp.ClientID])
 				kv.ClientMaxRequestSeq[commOp.ClientID] = commOp.ProposalID
 				if _, ok := kv.rsm[commOp.Key]; ok {
 					kv.rsm[commOp.Key] = kv.rsm[commOp.Key] + commOp.Value
 				} else {
 					kv.rsm[commOp.Key] = commOp.Value
 				}
-				DPrintf("kv %d: get Type:app %v after value %v", kv.me, commOp.Key, kv.rsm[commOp.Key])
+				DPrintf("kv %d: get Type:APP %v value %v after value %v from %d + %d", kv.me, commOp.Key, commOp.Value, kv.rsm[commOp.Key], commOp.ClientID, commOp.ProposalID)
 			}
 			if kv.curCommitIndex < commIndex {
 				kv.curCommitIndex = commIndex
 			}
-			kv.mu.Unlock()
-			if kv.maxraftstate < kv.rf.GetRaftStateSize()+2 {
+			if kv.maxraftstate != -1 && kv.maxraftstate < kv.rf.GetRaftStateSize()+2 && !snapshottingFlag {
+				//one time one snapshot
+				snapshottingFlag = true
 				DPrintf("kv %d: maxraftstate %v, currRaftStateSize %v go to snapshot", kv.me, kv.maxraftstate, kv.rf.GetRaftStateSize())
-				//kv.rf.Snapshots(kv.ClientMaxRequestSeq)
+				go kv.rf.TakeSnapshots(kv.ClientMaxRequestSeq, kv.rsm, applyMsg.CommandIndex, &(kv.mu))
+				DPrintf("kv %d: after  currRaftStateSize %v go to snapshot", kv.me, kv.rf.GetRaftStateSize())
+				snapshottingFlag = false
 			}
+			kv.mu.Unlock()
 		}
 	}
 }
@@ -226,15 +254,17 @@ func StartKVServer(servers []*labrpc.ClientEnd, me int, persister *raft.Persiste
 
 	kv := new(KVServer)
 	kv.me = me
+	g_kv = kv
 	kv.maxraftstate = maxraftstate
 
 	// You may need initialization code here.
 	kv.rsm = make(map[string]string)
 	kv.applyCh = make(chan raft.ApplyMsg)
+	kv.resultMap = make(map[int64]string)
+	kv.ClientMaxRequestSeq = make(map[int32]int)
+	go mainProcess(kv)
 	kv.rf = raft.Make(servers, me, persister, kv.applyCh)
-	kv.ClientMaxRequestSeq = make(map[int64]int)
 
 	// You may need initialization code here.
-	go mainProcess(kv)
 	return kv
 }

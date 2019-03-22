@@ -615,6 +615,7 @@ func TestSnapshotRPC3B(t *testing.T) {
 			Put(cfg, ck1, strconv.Itoa(i), strconv.Itoa(i))
 		}
 		time.Sleep(electionTimeout)
+		DPrintf("TEST7 :waiting")
 		Put(cfg, ck1, "b", "B")
 	}
 
@@ -628,6 +629,7 @@ func TestSnapshotRPC3B(t *testing.T) {
 	// lagging server, so that it has to catch up.
 	cfg.partition([]int{0, 2}, []int{1})
 	{
+		DPrintf("TEST7 : now 0 2")
 		ck1 := cfg.makeClient([]int{0, 2})
 		Put(cfg, ck1, "c", "C")
 		Put(cfg, ck1, "d", "D")
@@ -638,6 +640,7 @@ func TestSnapshotRPC3B(t *testing.T) {
 	}
 
 	// now everybody
+	DPrintf("TEST7 :rejoin")
 	cfg.partition([]int{0, 1, 2}, []int{})
 
 	Put(cfg, ck, "e", "E")
