@@ -1,5 +1,5 @@
 ### 6.824 课程学习 coding
-
+#### 欢迎STAR与交流 miaogen156@gamil.com。QQ群：575983415
 ***
 ---
 ### Lab1-MapReduce:
@@ -120,12 +120,97 @@ fmt.Printf("%v", tmpSlice)    //actually it runs without warnings or errors. pri
 ### 真香
 
 ---
+---
+
+### Lab3 KVservice
+
+####  Task1 简答的KV 
+- data race需要解决 go test -race 
+- 关键问题：
+    1. 请求正确的leader server
+    2. 状态机正确应用，(no duplicate request should be applied)
+- 这样几种出错的情况：
+    1. 对方不是leader
+    2. reply超时丢失
+    3. reply的err不为空，出现错误
+    4. 对于一个kvserver，由于分区的存在，可以误以为自己是leader，此KV可以接受请求，但因为无法获取majority，而请求超时。
+- 实现笔记：
+    1. 两方通信：get和put
+    2. 然后简单状态机：由rf 发送的commit消息来修改或者删除KV，可以使用DLC(double lock check)来检查applyCh中的内容避免出现重复的发送。(比较明显的是append，这里如果append发生了重传那么一个key对应的值就会出现多个)
+    3. 但Raft的leader为-1时，这时处于一种中间状态。应该等待一些ms然后换一个进行问询。
+    4. 对于消息的监听，这里应该是一个while循环，while循环里进行判断，在一定的时间内重复的监听的，如果commit的index大于调用start返回的index，就认为请求已经成功，返回结果。
+- KV service 这里就用简单的map来实现？先不考虑LSMtree结构
+- **log内如果加上command+ID拼接的字符串就可以避免状态机重复的执行。每一个client的ID由leader进行分配。**
+- 这里就要求每一个client在给kvserver发消息之前先获取一个ID。**这里像是TCP的窗口，一定时间内只有特定窗口的值是有效的。**
+- 要求是同步API，所以这里server端对于每一个请求都要等待commit结束才返回。并且每一个请求都应该有一个ID，由server记录，映射到相应的clientID上。确保一个重发的命令不会执行两次。**使用map映射clientID和对应的请求**  
+- 3A的描述中提到**最好从开始就加锁**，言虽如此，但是**自己加锁也更加锻炼自己，何况，之前的自己也做过了蛮久，也可以把之前做的时候遇到的一些经验放在这里，聊以锻炼**
+- kvserver应该在后台有一个线程用来listen change of log。
+- 有时间的话，RAFT的大论文可以拜读一下，相关的优化以及细节作者都已经想好了。
+- 大论文里提到优化：**client的ID是通过RegisterRPC来实现的，**，关于何时expire一个session&recycle clientID，1. 设置一个LRU策略，当达到最大值的时候，取消最远的那个；2.把过期时间写在log里，然后由大多数来同意。(live client在空闲时为了避免被清理，也会用keep-alive request来更新时间)
+- 对于client已经expired的request，leader会拒绝处理，返回错误，并要求client申请session。
+- **优化的部分等到lab3完成了以后再来做吧。**
+    -  如果强制要求所有的client都有一个不重复的clientID的话，那么一个注册分发服务肯定是必须的。 
+- ~~这里使用registerRPC的方式来注册ClientID~~，ClientID使用随机字符串来表示自己的唯一身份，虽然可能会有可能重复。(**使用RegisterRpc，可以避免ID的重复，待做**)
+### Optimization TODO：
+- Lease 机制实现
+- Read 不落盘
+### 问题
+- 如何清理clientId呢？根据什么清理呢？超时？ID值？大论文给的LRU策略和使用时间戳的方法，来维持session，对于short session，就可以清理掉。对于keep-alive的session，会使用request来维持session
 
 ---
 
+####  TASK 2 实现支持snapshot的KV
+- KVserver检测state的大小然后适时地saveSaveAndSnapshot, raft在persister中保存这些东西。
+- installSnapShot在follower请求leader已经discard掉的数据的时候，就需要发起installSnapShot请求。follower收到该请求以后，拿到锁然后install  snapshot。
+- 利用applyCh来传递installSnapshot的原因应该在于慢。raft收到installSnapShot的时候，是直接修改raft的log的，也可以向applyCh中一个个的进行修改，但这样应该会比较慢。这样还得把相应的clientID给传进去。
+- snapshot有raft层来完成，service层还有排冗余的map需要传给raft层
+- 还有一点要考虑的是，当你的旧log已经除去的时候，你就需要在原来log计算lastLogIndex的位置上加一个offset，并且在读的时候也要加上判断。所有的logIndex相关的地方都要做。
+- saveStateAndSnapShot的时候也需要注意并发的情况，如果在保存的时候还有其他的在访问，需要确保进行truncate的时候，没有别的在读。**关键的获取log的地方加锁来保护**
+- KV service每来一个applyMsg就判断一次大小，然后如果超限的时候，就发起snapshot，并把自己的clientID和request的map，和rsm传给rf 层。**这个地方，在我的实现里kv 通过协程来完成snapshot并且一次只能有一个进入snapshot阶段**
+- 需要在raft启动之前readSnapshot
+- 处于性能考虑的话，很多地方最好加读写锁，而我没有加。
+- getLastLogIndex的地方，可能会发生正好在snapshot的时候，造成读数据出错。
+- **立个flag：这部分大概率会因为添加getLastLogIndex而DEBUG很久**
+- 这里有不兼容的地方：默认没有snapshot的时候firstindex是1，如果snap以后log从第一个开始算的话，会有比较麻烦的地方，因为前后不一致而不好算。**所以每一个log都默认第一个不是有效的，这样在合并的时候也需要考虑清楚，在合并的时候，返回新的log的时候，会把第一个设置成nil。**
+- **读的时候需要加上lastIndexInSnapshot，写的时候又需要把这部分给减去，而log又是操作的核心。有点难受啊**。网上有人的实现是通过这样，在log中记录相应的logIndex来实现。
+- 在getTrueIndex中，因为第一个log是上一次snapshot的最后一个，所以可以考虑在getTrueIndex为的值为负的时候返回0。这样不至于出现panic。就是得考虑正不正确。
+- 这里限制的snapshot的大小是每一次的snapshot的大小？如果是这样，那为了back up之前缺失的很远的部分(前一个snapshot中么有)，该怎样解决？**傻了傻了，snapshot是针对kvserver来说的，而不是针对raft的，snapshot的主要作用是删掉旧的log，保存kvserver的状态，installsnapshot的时候也是这样的，主要是传递kvserver的状态，而不是log的，旧的log已经没有用了。**
+- 读raftpersist和snapshot的顺序也需要注意，因为snapshot是完全的重写，所以要是先读的raftpersist，前面的状态就丢失了。
+- 在返回命令处理结果的时候，需要注意在状态机内部直接返回而不能等待一段时间再去查询，因为状态机执行的很快，可能后面的命令又会覆盖掉这条命令的结果。**采用32位clientID和32位sequID合起来一起做命令的映射，并等待结果。**
+- rf.log 与snapshotindex相关：内部写动作用trueIndex，读动作用nameIndex。
+- 原来的这部分需要在进行back up的时候，是需要用到termList的做优化的，但是这里因为snapshot以后，log已经发生了改变。这里就需要重新来做一次索引。
+- 发现在锁的前后比较容易发生调度，也可能是这个地方的调度容易看到。
+- apply这里发送有点麻烦，因为apply发送给kv，kv中会调用snapshot，snapshot中会加锁，如果applyMsg在锁进行，可能会发生死锁，但是不加锁的话，又需要保证顺序，这部分需要改一下。kv service使用go routine来进行分发了。
+- 对于非leader来说不用保证commit的连续顺序，只要保证状态机是一致的。
+- **有时候会遇到commit的消息是nil的情况，按道理来说是不应该出现的。这里应该是snapshot的问题，commit是nil，还是从leader端进来的时候的问题，leader访问index的时候遇到了0那个index，这个时候应该sendsnapshot进行更新follower的状态的，这个地方问题应该是这样的**
+- 有时会频繁的发生snapshot。因为这里按照kv收到的commitIndex来判断大小进行snapshot，如果commindex占的整个log的比较小，就可能频繁的发生。(遇到过2个log就发生一次commit的情况)
+- **小概率会发生snapshot导致的问题：比如说正在读使用getTrueIndex(i)读log，然后发生了snapshot，这个时候，i的值可能会比rf.lastSnapshotIndex要小，然后getTrueIndex返回了0值，读log就从头开始读，这样就返回了不该返回的值，而这个时候本来是应该进行sendSnapshot操作的。需要彻底解决。**
+- 果真前面立的flag没有倒
+- **这里应该考虑一种方便的解法来解决，index越界的问题，特别是getTrueIndex的位置。如何设计一种方式能以一种比较稳妥的方式来做，我实现的是对于小于0索引返回0，但是这样其实是有问题的。**
+- installSnapshot的时候需要把snapshot的状态保存起来。避免下次crash以后读到的snapshot不是最新的。
+### 遇到的并发的问题
+- 执行顺序或者说同步导致的取到旧值的处理问题。有的地方取到旧值没有影响，有的就会直接宕掉。
+- 共享数据的访问变量存在时间太长，使用该变量再去访问时，数据已经发生了变化。
+- 这个实验中没有要求实现snapshot offset，当然是用分片是一个非常好的选择。
+- 在truncate的时候，第一次测试20个log左右会进行一次snapshot，我之前的实现是在一次AE impied的所有该commit数据都commit以后才更新commitIndex，因为kvserver收到 applyMsg就会判断是否调用snapshot，所以会先调用snapshot，两者之间先后顺序不同导致的问题。
+- 死锁的问题，三个部分：raft follower node commit的时候会获得锁，在锁占有期间同时会向channel发消息，发完消息，另一部分进行处理，另一部分处理的时候也会去争锁，然而锁被commit 部分占有，而commit部分又在等待消息发送(由于另一部分的阻塞，消息处理已经阻塞)，就这样形成了死锁。
+- 锁内进行二次判断也是有必要的**DCL**
+- 锁内需要用到的变量最好在锁内获取，避免读到旧值。
+- 前后需要保持一致性的即同一个versiond的对象，最好加锁。
+- 读取数据的时候为了保持一致，该加锁的地方不要吝啬加锁，正确性保证了才能有性能的说法。**FLAG：下次再因为这样的问题出错，直播吃xiang**
+- 在leader发送AE的时候，可能发生snapshot导致log的长度发生变化，并且由于getTrueIndex在超过下限的时候，会返回0值，导致发送给follower的log变成了并不应该拿到的。
+- 并发存在的地方：
+    - snapshot，RVrpc，AErpc，sendAERPC(有，(sendRVrpc是只读的，所以没有问题)。
+### others 
+- golang 有move语义吗？(没必要，map和slice都是引用)
+- go test -c 编译的文件里面没有符号表的信息
+- termList(索引)的部分在进行snapshot 以后需要进行在一次的重建。
+- **getTrueIndex在发生下越界的时候，考虑直接返回，这样在索引的时候会报错，如果发生错误，在recover的部分发送snapshot**
 
 
+### 重复client的请求：
+- 防重放：时间戳超时无效，nonce作为标记。两个结合用来防止重放的攻击。
+- 那和这里的client请求的区别在一个client重复的请求，上面的请求是可以避免这样的方式的，问题是一个请求，如果已经执行成功，但是client误以为没有成功，那么client会重新发送，然后，client的请求一直没有成功呢？
+- 这个地方其实需要一个安全级别的定义，要想达到安全级别需要怎样的处理方式。强的安全级别一定会出更加复杂的方式。
 
-
-  
-
+### 小概率3A和3B的线性化测试过不去
