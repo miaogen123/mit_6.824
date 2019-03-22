@@ -124,7 +124,7 @@ fmt.Printf("%v", tmpSlice)    //actually it runs without warnings or errors. pri
 
 ### Lab3 KVservice
 
-####  Task1 简答的KV 
+####  Task1 简单的KV 	
 - data race需要解决 go test -race 
 - 关键问题：
     1. 请求正确的leader server
