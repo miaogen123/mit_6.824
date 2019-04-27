@@ -383,6 +383,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 
 //AppendEntry...
 func (rf *Raft) AppendEntry(args *AppendEntry, reply *AppendEntryReply) {
+
 	//	defer func() {
 	//		if e := recover(); e != nil {
 	//			DPrintf("node %d error value is %v", rf.me, e)
@@ -391,7 +392,6 @@ func (rf *Raft) AppendEntry(args *AppendEntry, reply *AppendEntryReply) {
 	//			DPrintf("node %d get command %v from leader %d", rf.me, args.Entries, args.LeaderID)
 	//		}
 	//	}()
-
 	DPrintf("TEST4:node %d entries in append entries %v ", rf.me, args.Entries)
 	//1. Reply false if term < currentTerm (§5.1)
 	curTerm := rf.currentTerm
@@ -718,7 +718,7 @@ func (rf *Raft) sendAppendEntry(server int, args *AppendEntry, reply *AppendEntr
 // if it's ever committed. the second return value is the current
 // term. the third return value is true if this server believes it is
 // the leader.
-//
+
 func (rf *Raft) Start(command interface{}) (int, int, bool) {
 	index := -1
 	isLeader := true
@@ -952,7 +952,7 @@ func (rf *Raft) LeaderProcess(electionTimeOut int, applyCh chan ApplyMsg) int {
 				appEn.Term = appEnTerm
 				appEn.LeaderID = rf.me
 				appEn.LeaderCommit = rf.commitIndex
-				DPrintf("SPTEST:leader %d  commit %d", rf.me, appEn.LeaderCommit)
+				//DPrintf("SPTEST:leader %d  commit %d", rf.me, appEn.LeaderCommit)
 				DPrintf("leader %d :node %d nextIndex %d len(log) %d logLen %d lastIndexSnapshot %d 2nameIndex %d trueindex %d", rf.me, ind, rf.nextIndex[ind], len(rf.log), logLen, rf.lastIndexInSnapshot, rf.nextIndex[ind], rf.getTrueIndex(rf.nextIndex[ind]))
 				appEn.PrevLogIndex = rf.nextIndex[ind] - 1
 				prevLogIndex := appEn.PrevLogIndex
@@ -1090,6 +1090,10 @@ func (rf *Raft) LeaderProcess(electionTimeOut int, applyCh chan ApplyMsg) int {
 										rf.commitIndex = i
 										applyCh <- applyMsg
 										DPrintf("leader %d: commit com at %d of term %d command %v term %d", rf.me, i, rf.log[rf.getTrueIndex(i)].Term, rf.log[rf.getTrueIndex(i)].Command, rf.log[rf.getTrueIndex(i)].Term)
+										//update this commit message in time
+										if len(AEDistributedChan) == 0 {
+											AEDistributedChan <- true
+										}
 									}
 								}
 								rf.mu.Unlock()
