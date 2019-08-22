@@ -1,6 +1,5 @@
 package shardmaster
 
-//
 // Master shard server: assigns shards to replication groups.
 //
 // RPC interface:
@@ -16,12 +15,12 @@ package shardmaster
 //
 // You will need to add fields to the RPC argument structs.
 //
-
 // The number of shards.
 const NShards = 10
 
 // A configuration -- an assignment of shards to groups.
 // Please don't change this.
+
 type Config struct {
 	Num    int              // config number
 	Shards [NShards]int     // shard -> gid
@@ -35,7 +34,9 @@ const (
 type Err string
 
 type JoinArgs struct {
-	Servers map[int][]string // new GID -> servers mappings
+	ClientID int32
+	CommSeq  int
+	Servers  map[int][]string // new GID -> servers mappings
 }
 
 type JoinReply struct {
@@ -44,7 +45,9 @@ type JoinReply struct {
 }
 
 type LeaveArgs struct {
-	GIDs []int
+	ClientID int32
+	CommSeq  int
+	GIDs     []int
 }
 
 type LeaveReply struct {
@@ -53,8 +56,10 @@ type LeaveReply struct {
 }
 
 type MoveArgs struct {
-	Shard int
-	GID   int
+	ClientID int32
+	CommSeq  int
+	Shard    int
+	GID      int
 }
 
 type MoveReply struct {
@@ -63,7 +68,9 @@ type MoveReply struct {
 }
 
 type QueryArgs struct {
-	Num int // desired config number
+	ClientID int32
+	CommSeq  int
+	Num      int // desired config number
 }
 
 type QueryReply struct {
